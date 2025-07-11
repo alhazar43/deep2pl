@@ -1,15 +1,22 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import os
 import logging
 from tqdm import tqdm
 import json
 
+# Optional tensorboard import
+try:
+    from torch.utils.tensorboard import SummaryWriter
+    TENSORBOARD_AVAILABLE = True
+except ImportError:
+    TENSORBOARD_AVAILABLE = False
+    print("Warning: TensorBoard not available. Disable tensorboard logging.")
+
 from models.model import DeepIRTModel
-from data.dataloader import KnowledgeTracingDataset, CSVKnowledgeTracingDataset, create_dataloader
+from data.dataloader import KnowledgeTracingDataset, CSVKnowledgeTracingDataset, create_dataloader, create_datasets
 from utils.config import get_config
 
 
@@ -37,15 +44,27 @@ def setup_logging(config):
     return logger
 
 
-def evaluate_model(model, dataloader, device):
-    """Evaluate model on given dataloader."""
+def evaluate_model(model, dataloader, device, eval_type="Validation"):
+    """Evaluate model on given dataloader with progress bar."""
     model.eval()
     total_loss = 0
     total_correct = 0
     total_samples = 0
     
+    # Enhanced evaluation progress bar
+    eval_pbar = tqdm(
+        dataloader,
+        desc=f'📊 {eval_type:^10}',
+        leave=False,
+        dynamic_ncols=True,
+        colour='green'
+    )
+    
+    batch_losses = []
+    batch_accs = []
+    
     with torch.no_grad():
-        for batch in dataloader:
+        for batch_idx, batch in enumerate(eval_pbar):
             q_data = batch['q_data'].to(device)
             qa_data = batch['qa_data'].to(device)
             targets = batch['target'].to(device)
@@ -56,6 +75,7 @@ def evaluate_model(model, dataloader, device):
             # Compute loss
             loss = model.compute_loss(predictions, targets)
             total_loss += loss.item()
+            batch_losses.append(loss.item())
             
             # Compute accuracy
             mask = targets >= 0
@@ -66,6 +86,21 @@ def evaluate_model(model, dataloader, device):
             correct = (predicted_labels == masked_targets).sum().item()
             total_correct += correct
             total_samples += masked_targets.size(0)
+            
+            # Batch accuracy
+            batch_acc = correct / masked_targets.size(0) if masked_targets.size(0) > 0 else 0.0
+            batch_accs.append(batch_acc)
+            
+            # Running averages for progress display
+            current_avg_loss = np.mean(batch_losses)
+            current_avg_acc = np.mean(batch_accs)
+            
+            # Update progress bar
+            eval_pbar.set_postfix({
+                'Loss': f'{current_avg_loss:.4f}',
+                'Acc': f'{current_avg_acc:.4f}',
+                'Samples': f'{total_samples:5d}'
+            })
     
     avg_loss = total_loss / len(dataloader)
     accuracy = total_correct / total_samples if total_samples > 0 else 0
@@ -77,48 +112,54 @@ def train_model(config):
     """Main training function."""
     logger = setup_logging(config)
     logger.info(f"Configuration:\n{config}")
+    logger.info(f"Key config values: n_questions={config.n_questions}, data_style={config.data_style}, dataset_name={config.dataset_name}")
     
     # Set random seed
     set_seed(config.seed)
     
+    # Handle device selection
+    if config.device == 'auto':
+        config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    logger.info(f"Using device: {config.device}")
+    
     # Create directories
     os.makedirs(config.save_dir, exist_ok=True)
-    if config.tensorboard:
+    if config.tensorboard and TENSORBOARD_AVAILABLE:
         os.makedirs(config.log_dir, exist_ok=True)
         writer = SummaryWriter(config.log_dir)
-    
-    # Load datasets
-    logger.info("Loading datasets...")
-    
-    if config.data_format == 'txt':
-        train_dataset = KnowledgeTracingDataset(
-            data_path=os.path.join(config.data_dir, config.train_file),
-            seq_len=config.seq_len,
-            n_questions=config.n_questions
-        )
-        
-        test_dataset = KnowledgeTracingDataset(
-            data_path=os.path.join(config.data_dir, config.test_file),
-            seq_len=config.seq_len,
-            n_questions=config.n_questions
-        )
     else:
-        train_dataset = CSVKnowledgeTracingDataset(
-            csv_path=os.path.join(config.data_dir, config.train_file),
-            seq_len=config.seq_len,
-            n_questions=config.n_questions
-        )
-        
-        test_dataset = CSVKnowledgeTracingDataset(
-            csv_path=os.path.join(config.data_dir, config.test_file),
-            seq_len=config.seq_len,
-            n_questions=config.n_questions
-        )
+        writer = None
+        if config.tensorboard:
+            logger.warning("TensorBoard requested but not available. Skipping tensorboard logging.")
+    
+    # Load datasets using the new unified interface
+    logger.info(f"Loading datasets using {config.data_style} style...")
+    
+    # Determine data directory based on style
+    if config.data_style == 'yeung':
+        data_dir = config.data_dir if 'yeung' in config.data_dir else './data-yeung'
+    else:  # torch
+        data_dir = config.data_dir if 'orig' in config.data_dir else './data-orig'
+    
+    logger.info(f"Using data directory: {data_dir}")
+    logger.info(f"Dataset: {config.dataset_name}, Fold: {config.fold_idx}/{config.k_fold}")
+    
+    train_dataset, valid_dataset, test_dataset = create_datasets(
+        data_style=config.data_style,
+        data_dir=data_dir,
+        dataset_name=config.dataset_name,
+        seq_len=config.seq_len,
+        n_questions=config.n_questions,
+        k_fold=config.k_fold,
+        fold_idx=config.fold_idx
+    )
     
     train_dataloader = create_dataloader(train_dataset, config.batch_size, shuffle=True)
+    valid_dataloader = create_dataloader(valid_dataset, config.batch_size, shuffle=False)
     test_dataloader = create_dataloader(test_dataset, config.batch_size, shuffle=False)
     
     logger.info(f"Training samples: {len(train_dataset)}")
+    logger.info(f"Validation samples: {len(valid_dataset)}")
     logger.info(f"Test samples: {len(test_dataset)}")
     
     # Initialize model
@@ -158,9 +199,17 @@ def train_model(config):
         train_correct = 0
         train_samples = 0
         
-        # Training phase
-        pbar = tqdm(train_dataloader, desc=f'Epoch {epoch+1}/{config.n_epochs}')
-        for batch in pbar:
+        # Training phase with enhanced progress bar
+        pbar = tqdm(
+            train_dataloader, 
+            desc=f'🚀 Epoch {epoch+1:2d}/{config.n_epochs}',
+            leave=True,
+            dynamic_ncols=True,
+            colour='blue'
+        )
+        
+        batch_metrics = []
+        for batch_idx, batch in enumerate(pbar):
             q_data = batch['q_data'].to(config.device)
             qa_data = batch['qa_data'].to(config.device)
             targets = batch['target'].to(config.device)
@@ -193,10 +242,20 @@ def train_model(config):
             train_correct += correct
             train_samples += masked_targets.size(0)
             
-            # Update progress bar
+            # Batch metrics
+            batch_acc = correct / masked_targets.size(0) if masked_targets.size(0) > 0 else 0.0
+            batch_metrics.append({'loss': loss.item(), 'acc': batch_acc})
+            
+            # Running averages for smoother display
+            recent_loss = np.mean([m['loss'] for m in batch_metrics[-10:]])
+            recent_acc = np.mean([m['acc'] for m in batch_metrics[-10:]])
+            
+            # Enhanced progress bar with running stats
             pbar.set_postfix({
-                'Loss': f'{loss.item():.4f}',
-                'Acc': f'{correct/masked_targets.size(0):.4f}' if masked_targets.size(0) > 0 else '0.0000'
+                'Loss': f'{recent_loss:.4f}',
+                'Acc': f'{recent_acc:.4f}',
+                'LR': f'{scheduler.get_last_lr()[0]:.6f}',
+                'Batch': f'{batch_idx+1:4d}/{len(train_dataloader)}'
             })
         
         # Update learning rate
@@ -211,26 +270,34 @@ def train_model(config):
         
         # Evaluation phase
         if (epoch + 1) % config.eval_every == 0:
-            test_loss, test_acc = evaluate_model(model, test_dataloader, config.device)
+            # Validate on validation set
+            valid_loss, valid_acc = evaluate_model(model, valid_dataloader, config.device, "Validation")
+            logger.info(f'  Valid Loss: {valid_loss:.4f}, Valid Acc: {valid_acc:.4f}')
+            
+            # Test on test set (less frequent)
+            test_loss, test_acc = evaluate_model(model, test_dataloader, config.device, "Test")
             logger.info(f'  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.4f}')
             
-            # Save best model
-            if test_acc > best_test_acc:
-                best_test_acc = test_acc
+            # Save best model based on validation accuracy
+            if valid_acc > best_test_acc:
+                best_test_acc = valid_acc
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
+                    'valid_acc': valid_acc,
                     'test_acc': test_acc,
                     'config': config.__dict__
                 }, os.path.join(config.save_dir, 'best_model.pth'))
-                logger.info(f'  New best model saved with test accuracy: {test_acc:.4f}')
+                logger.info(f'  New best model saved with validation accuracy: {valid_acc:.4f}')
             
             # TensorBoard logging
-            if config.tensorboard:
+            if config.tensorboard and writer is not None:
                 writer.add_scalar('Loss/Train', avg_train_loss, epoch)
+                writer.add_scalar('Loss/Valid', valid_loss, epoch)
                 writer.add_scalar('Loss/Test', test_loss, epoch)
                 writer.add_scalar('Accuracy/Train', train_acc, epoch)
+                writer.add_scalar('Accuracy/Valid', valid_acc, epoch)
                 writer.add_scalar('Accuracy/Test', test_acc, epoch)
                 writer.add_scalar('Learning_Rate', scheduler.get_last_lr()[0], epoch)
         
@@ -251,9 +318,13 @@ def train_model(config):
         'config': config.__dict__
     }, os.path.join(config.save_dir, 'final_model.pth'))
     
-    logger.info(f"Training completed. Best test accuracy: {best_test_acc:.4f}")
+    logger.info(f"Training completed. Best validation accuracy: {best_test_acc:.4f}")
     
-    if config.tensorboard:
+    # Final evaluation on test set
+    final_test_loss, final_test_acc = evaluate_model(model, test_dataloader, config.device, "Final Test")
+    logger.info(f"Final test accuracy: {final_test_acc:.4f}")
+    
+    if config.tensorboard and writer is not None:
         writer.close()
 
 

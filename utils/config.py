@@ -33,8 +33,14 @@ class Config:
         self.test_file = "test.txt"
         self.data_format = "txt"  # "txt" or "csv"
         
-        # Training configuration
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        # New data loading parameters
+        self.data_style = "yeung"  # "yeung" (pre-split) or "torch" (runtime k-fold)
+        self.dataset_name = "assist2009_updated"  # Dataset name for yeung style
+        self.k_fold = 5  # Number of folds for cross-validation
+        self.fold_idx = 0  # Which fold to use (0 to k_fold-1)
+        
+        # Training configuration  
+        self.device = "auto"  # Will be set later in get_config()
         self.seed = 42
         self.save_dir = "checkpoints"
         self.log_dir = "logs"
@@ -48,7 +54,7 @@ class Config:
     def update_from_args(self, args):
         """Update config from command line arguments."""
         for key, value in vars(args).items():
-            if hasattr(self, key):
+            if hasattr(self, key) and value is not None:  # Only update if value is not None
                 setattr(self, key, value)
     
     def save(self, path):
@@ -78,63 +84,74 @@ def get_config():
     parser = argparse.ArgumentParser(description='Deep-IRT Knowledge Tracing')
     
     # Model parameters
-    parser.add_argument('--n_questions', type=int, default=100,
+    parser.add_argument('--n_questions', type=int, default=None,
                         help='Number of questions in dataset')
-    parser.add_argument('--memory_size', type=int, default=50,
+    parser.add_argument('--memory_size', type=int, default=None,
                         help='Memory size for DKVMN')
-    parser.add_argument('--key_memory_state_dim', type=int, default=50,
+    parser.add_argument('--key_memory_state_dim', type=int, default=None,
                         help='Key memory state dimension')
-    parser.add_argument('--value_memory_state_dim', type=int, default=200,
+    parser.add_argument('--value_memory_state_dim', type=int, default=None,
                         help='Value memory state dimension')
-    parser.add_argument('--summary_vector_dim', type=int, default=50,
+    parser.add_argument('--summary_vector_dim', type=int, default=None,
                         help='Summary vector dimension')
-    parser.add_argument('--q_embed_dim', type=int, default=50,
+    parser.add_argument('--q_embed_dim', type=int, default=None,
                         help='Question embedding dimension')
-    parser.add_argument('--qa_embed_dim', type=int, default=200,
+    parser.add_argument('--qa_embed_dim', type=int, default=None,
                         help='Question-answer embedding dimension')
-    parser.add_argument('--ability_scale', type=float, default=3.0,
+    parser.add_argument('--ability_scale', type=float, default=None,
                         help='Ability scaling factor in IRT')
     parser.add_argument('--use_discrimination', action='store_true',
                         help='Use discrimination parameter (2PL model)')
-    parser.add_argument('--dropout_rate', type=float, default=0.1,
+    parser.add_argument('--dropout_rate', type=float, default=None,
                         help='Dropout rate')
     
     # Training parameters
-    parser.add_argument('--batch_size', type=int, default=32,
+    parser.add_argument('--batch_size', type=int, default=None,
                         help='Batch size')
-    parser.add_argument('--seq_len', type=int, default=50,
+    parser.add_argument('--seq_len', type=int, default=None,
                         help='Sequence length')
-    parser.add_argument('--learning_rate', type=float, default=0.001,
+    parser.add_argument('--learning_rate', type=float, default=None,
                         help='Learning rate')
-    parser.add_argument('--n_epochs', type=int, default=100,
+    parser.add_argument('--n_epochs', type=int, default=None,
                         help='Number of training epochs')
-    parser.add_argument('--max_grad_norm', type=float, default=5.0,
+    parser.add_argument('--max_grad_norm', type=float, default=None,
                         help='Maximum gradient norm for clipping')
-    parser.add_argument('--weight_decay', type=float, default=1e-5,
+    parser.add_argument('--weight_decay', type=float, default=None,
                         help='Weight decay')
     
     # Data parameters
-    parser.add_argument('--data_dir', type=str, default='data',
+    parser.add_argument('--data_dir', type=str, default=None,
                         help='Data directory')
-    parser.add_argument('--train_file', type=str, default='train.txt',
+    parser.add_argument('--train_file', type=str, default=None,
                         help='Training data file')
-    parser.add_argument('--test_file', type=str, default='test.txt',
+    parser.add_argument('--test_file', type=str, default=None,
                         help='Test data file')
-    parser.add_argument('--data_format', type=str, default='txt',
+    parser.add_argument('--data_format', type=str, default=None,
                         choices=['txt', 'csv'], help='Data format')
     
+    # New data loading parameters
+    parser.add_argument('--data_style', type=str, default=None,
+                        choices=['yeung', 'torch'], 
+                        help='Data loading style: yeung (pre-split) or torch (runtime k-fold)')
+    parser.add_argument('--dataset_name', type=str, default=None,
+                        help='Dataset name (for yeung style)')
+    parser.add_argument('--k_fold', type=int, default=None,
+                        help='Number of folds for cross-validation')
+    parser.add_argument('--fold_idx', type=int, default=None,
+                        help='Which fold to use (0 to k_fold-1)')
+    
     # Training configuration
-    parser.add_argument('--device', type=str, default='auto',
+    parser.add_argument('--device', type=str, default=None,
                         help='Device to use (cuda/cpu/auto)')
-    parser.add_argument('--seed', type=int, default=42,
+    parser.add_argument('--seed', type=int, default=None,
                         help='Random seed')
-    parser.add_argument('--save_dir', type=str, default='checkpoints',
+    parser.add_argument('--save_dir', type=str, default=None,
                         help='Directory to save checkpoints')
-    parser.add_argument('--log_dir', type=str, default='logs',
+    parser.add_argument('--log_dir', type=str, default=None,
                         help='Directory to save logs')
-    parser.add_argument('--save_every', type=int, default=10,
+    parser.add_argument('--save_every', type=int, default=None,
                         help='Save checkpoint every N epochs')
-    parser.add_argument('--eval_every', type=int, default=5,
+    parser.add_argument('--eval_every', type=int, default=None,
                         help='Evaluate every N epochs')
     
     # Logging

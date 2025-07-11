@@ -1,0 +1,231 @@
+2025-07-11 11:21:33,632 - INFO - Configuration:
+Configuration:
+  n_questions: 100
+  memory_size: 50
+  key_memory_state_dim: 50
+  value_memory_state_dim: 200
+  summary_vector_dim: 50
+  q_embed_dim: 50
+  qa_embed_dim: 200
+  ability_scale: 3.0
+  use_discrimination: True
+  dropout_rate: 0.1
+  batch_size: 32
+  seq_len: 50
+  learning_rate: 0.001
+  n_epochs: 20
+  max_grad_norm: 5.0
+  weight_decay: 1e-05
+  data_dir: ./data-orig
+  train_file: train.txt
+  test_file: test.txt
+  data_format: txt
+  data_style: torch
+  dataset_name: assist2015
+  k_fold: 5
+  fold_idx: 0
+  device: auto
+  seed: 42
+  save_dir: checkpoints_torch_assist2015_fold0
+  log_dir: logs_torch_assist2015_fold0
+  save_every: 10
+  eval_every: 5
+  verbose: True
+  tensorboard: False
+
+2025-07-11 11:21:33,634 - INFO - Key config values: n_questions=100, data_style=torch, dataset_name=assist2015
+2025-07-11 11:21:33,682 - INFO - Loading datasets using torch style...
+2025-07-11 11:21:33,682 - INFO - Using data directory: ./data-orig
+2025-07-11 11:21:33,682 - INFO - Dataset: assist2015, Fold: 0/5
+2025-07-11 11:21:35,395 - INFO - Training samples: 12697
+2025-07-11 11:21:35,396 - INFO - Validation samples: 3175
+2025-07-11 11:21:35,396 - INFO - Test samples: 3968
+2025-07-11 11:21:35,396 - INFO - Initializing model...
+2025-07-11 11:22:26,609 - INFO - Configuration:
+Configuration:
+  n_questions: 100
+  memory_size: 50
+  key_memory_state_dim: 50
+  value_memory_state_dim: 200
+  summary_vector_dim: 50
+  q_embed_dim: 50
+  qa_embed_dim: 200
+  ability_scale: 3.0
+  use_discrimination: True
+  dropout_rate: 0.1
+  batch_size: 8
+  seq_len: 50
+  learning_rate: 0.001
+  n_epochs: 2
+  max_grad_norm: 5.0
+  weight_decay: 1e-05
+  data_dir: ./data-orig
+  train_file: train.txt
+  test_file: test.txt
+  data_format: txt
+  data_style: torch
+  dataset_name: assist2015
+  k_fold: 5
+  fold_idx: 0
+  device: auto
+  seed: 42
+  save_dir: checkpoints_torch_assist2015_fold0
+  log_dir: logs_torch_assist2015_fold0
+  save_every: 10
+  eval_every: 5
+  verbose: True
+  tensorboard: False
+
+2025-07-11 11:22:26,609 - INFO - Key config values: n_questions=100, data_style=torch, dataset_name=assist2015
+2025-07-11 11:22:26,610 - INFO - Using device: cpu
+2025-07-11 11:22:26,611 - INFO - Loading datasets using torch style...
+2025-07-11 11:22:26,611 - INFO - Using data directory: ./data-orig
+2025-07-11 11:22:26,611 - INFO - Dataset: assist2015, Fold: 0/5
+2025-07-11 11:22:28,387 - INFO - Training samples: 12697
+2025-07-11 11:22:28,388 - INFO - Validation samples: 3175
+2025-07-11 11:22:28,388 - INFO - Test samples: 3968
+2025-07-11 11:22:28,388 - INFO - Initializing model...
+2025-07-11 11:22:31,361 - INFO - Starting training...
+2025-07-11 11:25:59,566 - INFO - Configuration:
+Configuration:
+  n_questions: 100
+  memory_size: 50
+  key_memory_state_dim: 50
+  value_memory_state_dim: 200
+  summary_vector_dim: 50
+  q_embed_dim: 50
+  qa_embed_dim: 200
+  ability_scale: 3.0
+  use_discrimination: True
+  dropout_rate: 0.1
+  batch_size: 4
+  seq_len: 50
+  learning_rate: 0.001
+  n_epochs: 1
+  max_grad_norm: 5.0
+  weight_decay: 1e-05
+  data_dir: ./data-orig
+  train_file: train.txt
+  test_file: test.txt
+  data_format: txt
+  data_style: torch
+  dataset_name: assist2015
+  k_fold: 5
+  fold_idx: 0
+  device: auto
+  seed: 42
+  save_dir: checkpoints_torch_assist2015_fold0
+  log_dir: logs_torch_assist2015_fold0
+  save_every: 10
+  eval_every: 5
+  verbose: True
+  tensorboard: False
+
+2025-07-11 11:25:59,567 - INFO - Key config values: n_questions=100, data_style=torch, dataset_name=assist2015
+2025-07-11 11:25:59,570 - INFO - Using device: cpu
+2025-07-11 11:25:59,570 - INFO - Loading datasets using torch style...
+2025-07-11 11:25:59,570 - INFO - Using data directory: ./data-orig
+2025-07-11 11:25:59,570 - INFO - Dataset: assist2015, Fold: 0/5
+2025-07-11 11:26:00,732 - INFO - Training samples: 12697
+2025-07-11 11:26:00,733 - INFO - Validation samples: 3175
+2025-07-11 11:26:00,733 - INFO - Test samples: 3968
+2025-07-11 11:26:00,733 - INFO - Initializing model...
+2025-07-11 11:26:03,082 - INFO - Starting training...
+2025-07-11 11:33:22,768 - INFO - Configuration:
+Configuration:
+  n_questions: 100
+  memory_size: 50
+  key_memory_state_dim: 50
+  value_memory_state_dim: 200
+  summary_vector_dim: 50
+  q_embed_dim: 50
+  qa_embed_dim: 200
+  ability_scale: 3.0
+  use_discrimination: True
+  dropout_rate: 0.1
+  batch_size: 32
+  seq_len: 50
+  learning_rate: 0.001
+  n_epochs: 20
+  max_grad_norm: 5.0
+  weight_decay: 1e-05
+  data_dir: ./data-orig
+  train_file: train.txt
+  test_file: test.txt
+  data_format: txt
+  data_style: torch
+  dataset_name: assist2015
+  k_fold: 5
+  fold_idx: 0
+  device: auto
+  seed: 42
+  save_dir: checkpoints_torch_assist2015_fold0
+  log_dir: logs_torch_assist2015_fold0
+  save_every: 10
+  eval_every: 5
+  verbose: True
+  tensorboard: False
+
+2025-07-11 11:33:22,769 - INFO - Key config values: n_questions=100, data_style=torch, dataset_name=assist2015
+2025-07-11 11:33:22,773 - INFO - Using device: cpu
+2025-07-11 11:33:22,774 - INFO - Loading datasets using torch style...
+2025-07-11 11:33:22,774 - INFO - Using data directory: ./data-orig
+2025-07-11 11:33:22,774 - INFO - Dataset: assist2015, Fold: 0/5
+2025-07-11 11:33:25,016 - INFO - Training samples: 12697
+2025-07-11 11:33:25,017 - INFO - Validation samples: 3175
+2025-07-11 11:33:25,017 - INFO - Test samples: 3968
+2025-07-11 11:33:25,017 - INFO - Initializing model...
+2025-07-11 11:33:27,863 - INFO - Starting training...
+2025-07-11 11:36:01,930 - INFO - Epoch 1/20:
+2025-07-11 11:36:01,933 - INFO -   Train Loss: 0.2780, Train Acc: 0.8686
+2025-07-11 11:39:28,591 - INFO - Epoch 2/20:
+2025-07-11 11:39:28,626 - INFO -   Train Loss: 0.2733, Train Acc: 0.8715
+2025-07-11 11:41:29,807 - INFO - Epoch 3/20:
+2025-07-11 11:41:29,826 - INFO -   Train Loss: 0.2708, Train Acc: 0.8725
+2025-07-11 11:44:10,556 - INFO - Epoch 4/20:
+2025-07-11 11:44:10,576 - INFO -   Train Loss: 0.2683, Train Acc: 0.8735
+2025-07-11 11:47:03,050 - INFO - Epoch 5/20:
+2025-07-11 11:47:03,063 - INFO -   Train Loss: 0.2664, Train Acc: 0.8744
+2025-07-11 11:47:11,001 - INFO -   Valid Loss: 0.2719, Valid Acc: 0.8708
+2025-07-11 11:47:20,249 - INFO -   Test Loss: 0.2611, Test Acc: 0.8782
+2025-07-11 11:47:20,308 - INFO -   New best model saved with validation accuracy: 0.8708
+2025-07-11 11:49:41,529 - INFO - Epoch 6/20:
+2025-07-11 11:49:41,857 - INFO -   Train Loss: 0.2654, Train Acc: 0.8748
+2025-07-11 11:52:10,862 - INFO - Epoch 7/20:
+2025-07-11 11:52:10,883 - INFO -   Train Loss: 0.2643, Train Acc: 0.8752
+2025-07-11 11:54:52,068 - INFO - Epoch 8/20:
+2025-07-11 11:54:52,070 - INFO -   Train Loss: 0.2636, Train Acc: 0.8755
+2025-07-11 11:58:16,328 - INFO - Epoch 9/20:
+2025-07-11 11:58:16,336 - INFO -   Train Loss: 0.2622, Train Acc: 0.8758
+2025-07-11 12:01:17,384 - INFO - Epoch 10/20:
+2025-07-11 12:01:17,393 - INFO -   Train Loss: 0.2617, Train Acc: 0.8759
+2025-07-11 12:01:33,576 - INFO -   Valid Loss: 0.2683, Valid Acc: 0.8722
+2025-07-11 12:01:52,902 - INFO -   Test Loss: 0.2574, Test Acc: 0.8792
+2025-07-11 12:01:53,067 - INFO -   New best model saved with validation accuracy: 0.8722
+2025-07-11 12:04:50,297 - INFO - Epoch 11/20:
+2025-07-11 12:04:50,315 - INFO -   Train Loss: 0.2612, Train Acc: 0.8761
+2025-07-11 12:07:31,134 - INFO - Epoch 12/20:
+2025-07-11 12:07:31,174 - INFO -   Train Loss: 0.2604, Train Acc: 0.8764
+2025-07-11 12:10:09,158 - INFO - Epoch 13/20:
+2025-07-11 12:10:09,165 - INFO -   Train Loss: 0.2604, Train Acc: 0.8764
+2025-07-11 12:12:43,513 - INFO - Epoch 14/20:
+2025-07-11 12:12:43,518 - INFO -   Train Loss: 0.2600, Train Acc: 0.8765
+2025-07-11 12:15:16,301 - INFO - Epoch 15/20:
+2025-07-11 12:15:16,314 - INFO -   Train Loss: 0.2597, Train Acc: 0.8766
+2025-07-11 12:15:30,416 - INFO -   Valid Loss: 0.2681, Valid Acc: 0.8722
+2025-07-11 12:15:47,096 - INFO -   Test Loss: 0.2568, Test Acc: 0.8794
+2025-07-11 12:18:48,648 - INFO - Epoch 16/20:
+2025-07-11 12:18:48,654 - INFO -   Train Loss: 0.2597, Train Acc: 0.8764
+2025-07-11 12:21:54,316 - INFO - Epoch 17/20:
+2025-07-11 12:21:54,325 - INFO -   Train Loss: 0.2594, Train Acc: 0.8767
+2025-07-11 12:24:55,137 - INFO - Epoch 18/20:
+2025-07-11 12:24:55,137 - INFO -   Train Loss: 0.2595, Train Acc: 0.8766
+2025-07-11 12:27:56,256 - INFO - Epoch 19/20:
+2025-07-11 12:27:56,256 - INFO -   Train Loss: 0.2593, Train Acc: 0.8767
+2025-07-11 12:31:03,485 - INFO - Epoch 20/20:
+2025-07-11 12:31:03,522 - INFO -   Train Loss: 0.2590, Train Acc: 0.8767
+2025-07-11 12:31:24,042 - INFO -   Valid Loss: 0.2668, Valid Acc: 0.8729
+2025-07-11 12:31:47,048 - INFO -   Test Loss: 0.2559, Test Acc: 0.8797
+2025-07-11 12:31:47,286 - INFO -   New best model saved with validation accuracy: 0.8729
+2025-07-11 12:31:47,320 - INFO - Training completed. Best validation accuracy: 0.8729
+2025-07-11 12:32:10,558 - INFO - Final test accuracy: 0.8797

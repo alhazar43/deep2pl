@@ -208,6 +208,10 @@ class DeepIRTModel(nn.Module):
         """
         batch_size, seq_len = q_data.shape
         
+        # Safety check: clamp values to safe range
+        q_data = torch.clamp(q_data, 0, self.q_embed.num_embeddings - 1)
+        qa_data = torch.clamp(qa_data, 0, self.qa_embed.num_embeddings - 1)
+        
         # Initialize value memory for this batch
         self.memory.init_value_memory(batch_size, self.init_value_memory)
         
