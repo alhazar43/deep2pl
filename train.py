@@ -1,170 +1,219 @@
+#!/usr/bin/env python3
+"""
+Unified Training Script for Deep-IRT Model
+
+Supports:
+- Both data-orig and data-yeung formats
+- Automatic per-KC detection based on Q-matrix availability
+- Proper checkpoint naming: checkpoints_torch/best_model_assist2015.pth
+"""
+
+import os
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import numpy as np
-import os
-import logging
-from tqdm import tqdm
 import json
+import logging
+import argparse
+from datetime import datetime
+from tqdm import tqdm
+from sklearn.metrics import roc_auc_score, accuracy_score
 
-# Optional tensorboard import
-try:
-    from torch.utils.tensorboard import SummaryWriter
-    TENSORBOARD_AVAILABLE = True
-except ImportError:
-    TENSORBOARD_AVAILABLE = False
-    print("Warning: TensorBoard not available. Disable tensorboard logging.")
-
-from models.model import DeepIRTModel
-from data.dataloader import KnowledgeTracingDataset, CSVKnowledgeTracingDataset, create_dataloader, create_datasets
-from utils.config import get_config
+from models.deep_irt_model import UnifiedDeepIRTModel
+from data.dataloader import create_datasets, create_dataloader
+from utils.config import Config
 
 
-def set_seed(seed):
-    """Set random seed for reproducibility."""
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-
-
-def setup_logging(config):
+def setup_logging(log_dir, dataset_name):
     """Setup logging configuration."""
-    os.makedirs(config.log_dir, exist_ok=True)
+    os.makedirs(log_dir, exist_ok=True)
+    log_file = os.path.join(log_dir, f'train_{dataset_name}.log')
     
     logging.basicConfig(
-        level=logging.INFO if config.verbose else logging.WARNING,
+        level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(os.path.join(config.log_dir, 'train.log')),
+            logging.FileHandler(log_file),
             logging.StreamHandler()
         ]
     )
+    return logging.getLogger(__name__)
+
+
+def get_dataset_config(dataset_name, data_style, fold_idx=0):
+    """Get configuration for specific dataset."""
+    config = Config()
     
-    logger = logging.getLogger(__name__)
-    return logger
+    # Common settings
+    config.data_style = data_style
+    config.fold_idx = fold_idx
+    config.k_fold = 5
+    
+    # Dataset-specific configurations
+    if data_style == "yeung":
+        config.data_dir = "./data-yeung"
+        
+        if dataset_name == "assist2009_updated":
+            config.dataset_name = "assist2009_updated"
+            config.n_questions = 111
+            config.seq_len = 50
+            config.batch_size = 32
+            config.n_epochs = 20
+            config.q_matrix_path = None
+            config.skill_mapping_path = "./data-yeung/assist2009_updated/assist2009_updated_skill_mapping.txt"
+            
+        elif dataset_name == "STATICS":
+            config.dataset_name = "STATICS"
+            config.n_questions = 1223
+            config.seq_len = 50
+            config.batch_size = 16
+            config.n_epochs = 20
+            config.q_matrix_path = "./data-yeung/STATICS/Qmatrix.csv"
+            config.skill_mapping_path = None
+            
+        elif dataset_name == "assist2015":
+            config.dataset_name = "assist2015"
+            config.n_questions = 100
+            config.seq_len = 50
+            config.batch_size = 32
+            config.n_epochs = 20
+            config.q_matrix_path = None
+            config.skill_mapping_path = None
+            
+    elif data_style == "torch":
+        config.data_dir = "./data-orig"
+        
+        if dataset_name == "assist2015":
+            config.dataset_name = "assist2015"
+            config.n_questions = 100
+            config.seq_len = 50
+            config.batch_size = 32
+            config.n_epochs = 25
+            config.q_matrix_path = None
+            config.skill_mapping_path = None
+            
+        elif dataset_name == "assist2009":
+            config.dataset_name = "assist2009"
+            config.n_questions = 111
+            config.seq_len = 50
+            config.batch_size = 32
+            config.n_epochs = 20
+            config.q_matrix_path = None
+            config.skill_mapping_path = None
+    
+    # Model configuration
+    config.memory_size = 50
+    config.key_memory_state_dim = 50
+    config.value_memory_state_dim = 200
+    config.summary_vector_dim = 50
+    config.q_embed_dim = 50
+    config.qa_embed_dim = 200
+    config.ability_scale = 3.0
+    config.use_discrimination = False
+    config.dropout_rate = 0.1
+    
+    # Training configuration
+    config.learning_rate = 0.001
+    config.max_grad_norm = 5.0
+    config.weight_decay = 1e-5
+    config.eval_every = 5
+    config.save_every = 10
+    config.verbose = True
+    config.seed = 42
+    
+    # Save directories
+    config.save_dir = f"checkpoints_{data_style}"
+    config.log_dir = f"logs_{data_style}"
+    
+    return config
 
 
-def evaluate_model(model, dataloader, device, eval_type="Validation"):
-    """Evaluate model on given dataloader with progress bar."""
+def evaluate_model(model, data_loader, device, desc="Evaluating"):
+    """Evaluate model performance."""
     model.eval()
     total_loss = 0
-    total_correct = 0
-    total_samples = 0
-    
-    # Enhanced evaluation progress bar
-    eval_pbar = tqdm(
-        dataloader,
-        desc=f'📊 {eval_type:^10}',
-        leave=False,
-        dynamic_ncols=True,
-        colour='green'
-    )
-    
-    batch_losses = []
-    batch_accs = []
+    all_predictions = []
+    all_targets = []
     
     with torch.no_grad():
-        for batch_idx, batch in enumerate(eval_pbar):
+        for batch in tqdm(data_loader, desc=desc, leave=False):
             q_data = batch['q_data'].to(device)
             qa_data = batch['qa_data'].to(device)
             targets = batch['target'].to(device)
             
-            # Forward pass
-            predictions, _, _, _ = model(q_data, qa_data)
+            predictions, student_abilities, item_difficulties, z_values, kc_info = model(q_data, qa_data)
             
-            # Compute loss
             loss = model.compute_loss(predictions, targets)
             total_loss += loss.item()
-            batch_losses.append(loss.item())
             
-            # Compute accuracy
             mask = targets >= 0
-            masked_predictions = predictions[mask]
-            masked_targets = targets[mask]
-            
-            predicted_labels = (masked_predictions > 0.5).float()
-            correct = (predicted_labels == masked_targets).sum().item()
-            total_correct += correct
-            total_samples += masked_targets.size(0)
-            
-            # Batch accuracy
-            batch_acc = correct / masked_targets.size(0) if masked_targets.size(0) > 0 else 0.0
-            batch_accs.append(batch_acc)
-            
-            # Running averages for progress display
-            current_avg_loss = np.mean(batch_losses)
-            current_avg_acc = np.mean(batch_accs)
-            
-            # Update progress bar
-            eval_pbar.set_postfix({
-                'Loss': f'{current_avg_loss:.4f}',
-                'Acc': f'{current_avg_acc:.4f}',
-                'Samples': f'{total_samples:5d}'
-            })
+            if mask.any():
+                all_predictions.extend(predictions[mask].cpu().numpy())
+                all_targets.extend(targets[mask].cpu().numpy())
     
-    avg_loss = total_loss / len(dataloader)
-    accuracy = total_correct / total_samples if total_samples > 0 else 0
+    avg_loss = total_loss / len(data_loader) if len(data_loader) > 0 else 0
     
-    return avg_loss, accuracy
-
-
-def train_model(config):
-    """Main training function."""
-    logger = setup_logging(config)
-    logger.info(f"Configuration:\n{config}")
-    logger.info(f"Key config values: n_questions={config.n_questions}, data_style={config.data_style}, dataset_name={config.dataset_name}")
-    
-    # Set random seed
-    set_seed(config.seed)
-    
-    # Handle device selection
-    if config.device == 'auto':
-        config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    logger.info(f"Using device: {config.device}")
-    
-    # Create directories
-    os.makedirs(config.save_dir, exist_ok=True)
-    if config.tensorboard and TENSORBOARD_AVAILABLE:
-        os.makedirs(config.log_dir, exist_ok=True)
-        writer = SummaryWriter(config.log_dir)
+    if all_predictions:
+        auc = roc_auc_score(all_targets, all_predictions)
+        acc = accuracy_score(all_targets, np.array(all_predictions) > 0.5)
     else:
-        writer = None
-        if config.tensorboard:
-            logger.warning("TensorBoard requested but not available. Skipping tensorboard logging.")
+        auc = 0.0
+        acc = 0.0
     
-    # Load datasets using the new unified interface
-    logger.info(f"Loading datasets using {config.data_style} style...")
+    return avg_loss, auc, acc
+
+
+def save_checkpoint(model, optimizer, epoch, loss, save_path, dataset_name, is_best=False):
+    """Save model checkpoint with proper naming."""
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+        'dataset_name': dataset_name,
+        'timestamp': datetime.now().isoformat()
+    }
     
-    # Determine data directory based on style
-    if config.data_style == 'yeung':
-        data_dir = config.data_dir if 'yeung' in config.data_dir else './data-yeung'
-    else:  # torch
-        data_dir = config.data_dir if 'orig' in config.data_dir else './data-orig'
+    torch.save(checkpoint, save_path)
     
-    logger.info(f"Using data directory: {data_dir}")
-    logger.info(f"Dataset: {config.dataset_name}, Fold: {config.fold_idx}/{config.k_fold}")
+    if is_best:
+        dir_path = os.path.dirname(save_path)
+        best_path = os.path.join(dir_path, f"best_model_{dataset_name}.pth")
+        torch.save(checkpoint, best_path)
+
+
+def train_model(config, logger):
+    """Main training function."""
     
-    train_dataset, valid_dataset, test_dataset = create_datasets(
-        data_style=config.data_style,
-        data_dir=data_dir,
-        dataset_name=config.dataset_name,
-        seq_len=config.seq_len,
-        n_questions=config.n_questions,
-        k_fold=config.k_fold,
-        fold_idx=config.fold_idx
-    )
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    logger.info(f"Using device: {device}")
     
-    train_dataloader = create_dataloader(train_dataset, config.batch_size, shuffle=True)
-    valid_dataloader = create_dataloader(valid_dataset, config.batch_size, shuffle=False)
-    test_dataloader = create_dataloader(test_dataset, config.batch_size, shuffle=False)
+    torch.manual_seed(config.seed)
+    np.random.seed(config.seed)
     
-    logger.info(f"Training samples: {len(train_dataset)}")
-    logger.info(f"Validation samples: {len(valid_dataset)}")
-    logger.info(f"Test samples: {len(test_dataset)}")
+    os.makedirs(config.save_dir, exist_ok=True)
+    os.makedirs(config.log_dir, exist_ok=True)
     
-    # Initialize model
-    logger.info("Initializing model...")
-    model = DeepIRTModel(
+    logger.info(f"Loading {config.dataset_name} dataset...")
+    try:
+        train_dataset, valid_dataset, test_dataset = create_datasets(
+            data_style=config.data_style,
+            data_dir=config.data_dir,
+            dataset_name=config.dataset_name,
+            seq_len=config.seq_len,
+            n_questions=config.n_questions,
+            k_fold=config.k_fold,
+            fold_idx=config.fold_idx
+        )
+    except Exception as e:
+        logger.error(f"Error loading datasets: {e}")
+        return
+    
+    train_loader = create_dataloader(train_dataset, config.batch_size, shuffle=True)
+    valid_loader = create_dataloader(valid_dataset, config.batch_size, shuffle=False)
+    test_loader = create_dataloader(test_dataset, config.batch_size, shuffle=False)
+    
+    model = UnifiedDeepIRTModel(
         n_questions=config.n_questions,
         memory_size=config.memory_size,
         key_memory_state_dim=config.key_memory_state_dim,
@@ -174,164 +223,140 @@ def train_model(config):
         qa_embed_dim=config.qa_embed_dim,
         ability_scale=config.ability_scale,
         use_discrimination=config.use_discrimination,
-        dropout_rate=config.dropout_rate
-    )
+        dropout_rate=config.dropout_rate,
+        q_matrix_path=getattr(config, 'q_matrix_path', None),
+        skill_mapping_path=getattr(config, 'skill_mapping_path', None)
+    ).to(device)
     
-    model = model.to(config.device)
+    total_params = sum(p.numel() for p in model.parameters())
+    logger.info(f"Data: {len(train_dataset)}/{len(valid_dataset)}/{len(test_dataset)} | "
+               f"Model: {total_params:,} params | Per-KC: {model.per_kc_mode}"
+               + (f" ({model.n_kcs} KCs)" if model.per_kc_mode else ""))
     
-    # Initialize optimizer
-    optimizer = optim.Adam(
-        model.parameters(),
-        lr=config.learning_rate,
-        weight_decay=config.weight_decay
-    )
+    optimizer = optim.Adam(model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
     
-    # Learning rate scheduler
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
-    
-    # Training loop
     logger.info("Starting training...")
-    best_test_acc = 0
+    best_valid_auc = 0.0
     
-    for epoch in range(config.n_epochs):
+    # Create epoch progress bar
+    epoch_pbar = tqdm(range(config.n_epochs), desc="Training", unit="epoch")
+    
+    for epoch in epoch_pbar:
         model.train()
-        train_loss = 0
-        train_correct = 0
-        train_samples = 0
+        total_loss = 0
+        num_batches = 0
         
-        # Training phase with enhanced progress bar
-        pbar = tqdm(
-            train_dataloader, 
-            desc=f'🚀 Epoch {epoch+1:2d}/{config.n_epochs}',
-            leave=True,
-            dynamic_ncols=True,
-            colour='blue'
-        )
+        # Create batch progress bar
+        batch_pbar = tqdm(train_loader, desc=f"Epoch {epoch+1}", leave=False, unit="batch")
         
-        batch_metrics = []
-        for batch_idx, batch in enumerate(pbar):
-            q_data = batch['q_data'].to(config.device)
-            qa_data = batch['qa_data'].to(config.device)
-            targets = batch['target'].to(config.device)
+        for batch_idx, batch in enumerate(batch_pbar):
+            q_data = batch['q_data'].to(device)
+            qa_data = batch['qa_data'].to(device)
+            targets = batch['target'].to(device)
             
-            # Forward pass
-            predictions, student_abilities, item_difficulties, z_values = model(q_data, qa_data)
-            
-            # Compute loss
+            predictions, student_abilities, item_difficulties, z_values, kc_info = model(q_data, qa_data)
             loss = model.compute_loss(predictions, targets)
             
-            # Backward pass
             optimizer.zero_grad()
             loss.backward()
-            
-            # Gradient clipping
             torch.nn.utils.clip_grad_norm_(model.parameters(), config.max_grad_norm)
-            
             optimizer.step()
             
-            # Update statistics
-            train_loss += loss.item()
+            total_loss += loss.item()
+            num_batches += 1
             
-            # Compute accuracy
-            mask = targets >= 0
-            masked_predictions = predictions[mask]
-            masked_targets = targets[mask]
-            
-            predicted_labels = (masked_predictions > 0.5).float()
-            correct = (predicted_labels == masked_targets).sum().item()
-            train_correct += correct
-            train_samples += masked_targets.size(0)
-            
-            # Batch metrics
-            batch_acc = correct / masked_targets.size(0) if masked_targets.size(0) > 0 else 0.0
-            batch_metrics.append({'loss': loss.item(), 'acc': batch_acc})
-            
-            # Running averages for smoother display
-            recent_loss = np.mean([m['loss'] for m in batch_metrics[-10:]])
-            recent_acc = np.mean([m['acc'] for m in batch_metrics[-10:]])
-            
-            # Enhanced progress bar with running stats
-            pbar.set_postfix({
-                'Loss': f'{recent_loss:.4f}',
-                'Acc': f'{recent_acc:.4f}',
-                'LR': f'{scheduler.get_last_lr()[0]:.6f}',
-                'Batch': f'{batch_idx+1:4d}/{len(train_dataloader)}'
-            })
+            # Update batch progress bar
+            batch_pbar.set_postfix(loss=f"{loss.item():.4f}")
         
-        # Update learning rate
-        scheduler.step()
+        avg_train_loss = total_loss / num_batches if num_batches > 0 else 0
         
-        # Compute training metrics
-        avg_train_loss = train_loss / len(train_dataloader)
-        train_acc = train_correct / train_samples if train_samples > 0 else 0
+        # Update epoch progress bar
+        epoch_pbar.set_postfix(train_loss=f"{avg_train_loss:.4f}")
         
-        logger.info(f'Epoch {epoch+1}/{config.n_epochs}:')
-        logger.info(f'  Train Loss: {avg_train_loss:.4f}, Train Acc: {train_acc:.4f}')
-        
-        # Evaluation phase
         if (epoch + 1) % config.eval_every == 0:
-            # Validate on validation set
-            valid_loss, valid_acc = evaluate_model(model, valid_dataloader, config.device, "Validation")
-            logger.info(f'  Valid Loss: {valid_loss:.4f}, Valid Acc: {valid_acc:.4f}')
+            valid_loss, valid_auc, valid_acc = evaluate_model(model, valid_loader, device, desc="Validation")
             
-            # Test on test set (less frequent)
-            test_loss, test_acc = evaluate_model(model, test_dataloader, config.device, "Test")
-            logger.info(f'  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.4f}')
+            logger.info(f"Epoch {epoch+1}: Train={avg_train_loss:.4f}, Valid={valid_loss:.4f}, AUC={valid_auc:.4f}")
             
-            # Save best model based on validation accuracy
-            if valid_acc > best_test_acc:
-                best_test_acc = valid_acc
-                torch.save({
-                    'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'valid_acc': valid_acc,
-                    'test_acc': test_acc,
-                    'config': config.__dict__
-                }, os.path.join(config.save_dir, 'best_model.pth'))
-                logger.info(f'  New best model saved with validation accuracy: {valid_acc:.4f}')
+            if (epoch + 1) % config.save_every == 0:
+                checkpoint_path = os.path.join(config.save_dir, f"checkpoint_epoch_{epoch+1}_{config.dataset_name}.pth")
+                save_checkpoint(model, optimizer, epoch+1, valid_loss, checkpoint_path, config.dataset_name)
             
-            # TensorBoard logging
-            if config.tensorboard and writer is not None:
-                writer.add_scalar('Loss/Train', avg_train_loss, epoch)
-                writer.add_scalar('Loss/Valid', valid_loss, epoch)
-                writer.add_scalar('Loss/Test', test_loss, epoch)
-                writer.add_scalar('Accuracy/Train', train_acc, epoch)
-                writer.add_scalar('Accuracy/Valid', valid_acc, epoch)
-                writer.add_scalar('Accuracy/Test', test_acc, epoch)
-                writer.add_scalar('Learning_Rate', scheduler.get_last_lr()[0], epoch)
-        
-        # Save checkpoint
-        if (epoch + 1) % config.save_every == 0:
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'config': config.__dict__
-            }, os.path.join(config.save_dir, f'checkpoint_epoch_{epoch+1}.pth'))
+            if valid_auc > best_valid_auc:
+                best_valid_auc = valid_auc
+                best_path = os.path.join(config.save_dir, f"best_model_{config.dataset_name}.pth")
+                save_checkpoint(model, optimizer, epoch+1, valid_loss, best_path, config.dataset_name, is_best=True)
+                epoch_pbar.set_postfix(train_loss=f"{avg_train_loss:.4f}", best_auc=f"{best_valid_auc:.4f}")
     
-    # Save final model
-    torch.save({
-        'epoch': config.n_epochs,
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'config': config.__dict__
-    }, os.path.join(config.save_dir, 'final_model.pth'))
+    epoch_pbar.close()
     
-    logger.info(f"Training completed. Best validation accuracy: {best_test_acc:.4f}")
+    logger.info("Final evaluation on test set...")
+    test_loss, test_auc, test_acc = evaluate_model(model, test_loader, device, desc="Testing")
+    logger.info(f"Test: Loss={test_loss:.4f}, AUC={test_auc:.4f}, Acc={test_acc:.4f}")
     
-    # Final evaluation on test set
-    final_test_loss, final_test_acc = evaluate_model(model, test_dataloader, config.device, "Final Test")
-    logger.info(f"Final test accuracy: {final_test_acc:.4f}")
+    final_path = os.path.join(config.save_dir, f"final_model_{config.dataset_name}.pth")
+    save_checkpoint(model, optimizer, config.n_epochs, test_loss, final_path, config.dataset_name)
     
-    if config.tensorboard and writer is not None:
-        writer.close()
+    config_path = os.path.join(config.save_dir, f"config_{config.dataset_name}.json")
+    with open(config_path, 'w') as f:
+        json.dump(vars(config), f, indent=2)
+    
+    logger.info("Training completed!")
+    logger.info(f"Best validation AUC: {best_valid_auc:.4f}")
+    logger.info(f"Final test AUC: {test_auc:.4f}")
+    
+    return best_valid_auc, test_auc
 
 
 def main():
-    """Main function."""
-    config = get_config()
-    train_model(config)
+    """Main function with command line interface."""
+    parser = argparse.ArgumentParser(description='Train Deep-IRT Model')
+    parser.add_argument('--dataset', type=str, required=True,
+                        choices=['assist2009_updated', 'assist2015', 'STATICS', 'assist2009'],
+                        help='Dataset name')
+    parser.add_argument('--data_style', type=str, required=True,
+                        choices=['yeung', 'torch'],
+                        help='Data format style')
+    parser.add_argument('--fold', type=int, default=0,
+                        help='Fold index for cross-validation (0-4)')
+    parser.add_argument('--epochs', type=int, default=None,
+                        help='Number of epochs (overrides default)')
+    parser.add_argument('--batch_size', type=int, default=None,
+                        help='Batch size (overrides default)')
+    parser.add_argument('--learning_rate', type=float, default=None,
+                        help='Learning rate (overrides default)')
+    
+    args = parser.parse_args()
+    
+    if args.fold < 0 or args.fold >= 5:
+        print("Error: Fold index must be between 0 and 4")
+        return
+    
+    config = get_dataset_config(args.dataset, args.data_style, args.fold)
+    
+    if args.epochs is not None:
+        config.n_epochs = args.epochs
+    if args.batch_size is not None:
+        config.batch_size = args.batch_size
+    if args.learning_rate is not None:
+        config.learning_rate = args.learning_rate
+    
+    logger = setup_logging(config.log_dir, config.dataset_name)
+    
+    logger.info(f"=== Training Deep-IRT ===")
+    logger.info(f"Dataset: {args.dataset}")
+    logger.info(f"Data style: {args.data_style}")
+    logger.info(f"Fold: {args.fold}")
+    logger.info(f"Epochs: {config.n_epochs}")
+    logger.info(f"Batch size: {config.batch_size}")
+    logger.info(f"Learning rate: {config.learning_rate}")
+    
+    best_auc, test_auc = train_model(config, logger)
+    
+    print(f"\n=== Training Summary ===")
+    print(f"Dataset: {args.dataset}")
+    print(f"Best Validation AUC: {best_auc:.4f}")
+    print(f"Final Test AUC: {test_auc:.4f}")
 
 
 if __name__ == "__main__":
