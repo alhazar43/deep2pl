@@ -1,4 +1,5 @@
-from .model import DeepIRTModel, StudentAbilityNetwork, ItemDifficultyNetwork, IRTPredictor
+from .irt import DeepIRTModel
+from .model import StudentAbilityNetwork, ItemDifficultyNetwork, IRTPredictor
 from .memory import DKVMN, MemoryHeadGroup
 
 __all__ = [

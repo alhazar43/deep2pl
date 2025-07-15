@@ -56,16 +56,16 @@ def get_dataset_config(dataset_name, data_style, fold_idx=0):
         if dataset_name == "assist2009_updated":
             config.dataset_name = "assist2009_updated"
             config.n_questions = 111
-            config.seq_len = 50
+            config.seq_len = 1200  # Max sequence length: 1,146
             config.batch_size = 32
             config.n_epochs = 20
-            config.q_matrix_path = None
+            config.q_matrix_path = "./data-yeung/assist2009_updated/assist2009_updated_qid_sid"
             config.skill_mapping_path = "./data-yeung/assist2009_updated/assist2009_updated_skill_mapping.txt"
             
         elif dataset_name == "STATICS":
             config.dataset_name = "STATICS"
             config.n_questions = 1223
-            config.seq_len = 50
+            config.seq_len = 1200  # Max sequence length: 1,162
             config.batch_size = 16
             config.n_epochs = 20
             config.q_matrix_path = "./data-yeung/STATICS/Qmatrix.csv"
@@ -74,25 +74,25 @@ def get_dataset_config(dataset_name, data_style, fold_idx=0):
         elif dataset_name == "assist2015":
             config.dataset_name = "assist2015"
             config.n_questions = 100
-            config.seq_len = 50
+            config.seq_len = 650  # Max sequence length: 618
             config.batch_size = 32
             config.n_epochs = 20
-            config.q_matrix_path = None
+            config.q_matrix_path = "./data-yeung/assist2015/assist2015_qid_sid"
             config.skill_mapping_path = None
             
         elif dataset_name == "fsaif1tof3":
             config.dataset_name = "fsaif1tof3"
             config.n_questions = 100  # Will be determined from data
-            config.seq_len = 50
+            config.seq_len = 700  # Max sequence length: 668
             config.batch_size = 32
             config.n_epochs = 20
-            config.q_matrix_path = None
+            config.q_matrix_path = "./data-yeung/fsaif1tof3/conceptname_question_id.csv"
             config.skill_mapping_path = None
             
         elif dataset_name == "synthetic":
             config.dataset_name = "synthetic"
             config.n_questions = 100  # Will be determined from data
-            config.seq_len = 50
+            config.seq_len = 50  # Max sequence length: 50 (uniform)
             config.batch_size = 32
             config.n_epochs = 20
             config.q_matrix_path = None

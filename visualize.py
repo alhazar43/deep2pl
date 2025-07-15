@@ -140,7 +140,14 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                     student_betas = []
                     student_probs = []
                     
+                    # Find actual sequence length by stopping at padding (q_id = 0)
+                    actual_seq_len = seq_len
                     for t in range(seq_len):
+                        if q_data[student_idx, t].item() == 0:  # Hit padding
+                            actual_seq_len = t
+                            break
+                    
+                    for t in range(actual_seq_len):
                         q_id = q_data[student_idx, t].item()
                         student_questions.append(q_id)
                         student_betas.append(item_difficulties[student_idx, t].cpu().item())
@@ -148,12 +155,14 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                         # Extract correctness based on qa_data encoding
                         if q_id > 0:
                             qa_val = qa_data[student_idx, t].item()
-                            # qa_data encodes: correct = q_id * 2 + 1, incorrect = q_id * 2
-                            if qa_val == q_id * 2 + 1:  # Correct answer
+                            # qa_data encodes: correct = q_id + n_questions, incorrect = q_id
+                            # This encoding is used by all data loaders in the codebase
+                            if qa_val == q_id + model.n_questions:  # Correct answer
                                 student_correctness.append(1)
-                            elif qa_val == q_id * 2:  # Incorrect answer
+                            elif qa_val == q_id:  # Incorrect answer
                                 student_correctness.append(0)
-                            else:  # Invalid qa value
+                            else:  # Invalid qa value - log for debugging
+                                print(f"Warning: Invalid qa_value {qa_val} for q_id {q_id}, expected {q_id} or {q_id + model.n_questions}")
                                 student_correctness.append(-1)
                         else:
                             student_correctness.append(-1)  # No question
@@ -175,13 +184,14 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
     return global_data, per_kc_data
 
 
-def plot_global_heatmap(data, save_path=None):
+def plot_global_heatmap(data, save_path=None, max_display_timesteps=100):
     """
     Create global theta heatmap visualization.
     
     Parameters:
         data (dict): Dictionary containing global theta data
         save_path (str, optional): Path to save the visualization
+        max_display_timesteps (int): Maximum timesteps to display in plot (default: 100)
     """
     df = pd.DataFrame({
         'Student': data['student_ids'],
@@ -189,11 +199,21 @@ def plot_global_heatmap(data, save_path=None):
         'Theta': data['student_abilities']
     })
     
-    theta_matrix = df.pivot_table(values='Theta', index='Student', columns='Timestep', aggfunc='mean')
+    # Limit display to max_display_timesteps while keeping full computation info
+    max_timestep = df['Timestep'].max()
+    display_timesteps = min(max_timestep, max_display_timesteps - 1)  # -1 because timesteps are 0-indexed
+    
+    # Filter data for display
+    df_display = df[df['Timestep'] <= display_timesteps]
+    
+    theta_matrix = df_display.pivot_table(values='Theta', index='Student', columns='Timestep', aggfunc='mean')
     
     plt.figure(figsize=(12, 8))
     sns.heatmap(theta_matrix, cmap='RdYlGn', center=0, cbar_kws={'label': 'Student Ability (θ)'})
-    plt.title('Student Ability (θ) Evolution Over Time\nDeep-IRT Model (Global)', fontsize=14)
+    
+    # Update title to show display information
+    total_info = f" (showing first {display_timesteps + 1} of {max_timestep + 1} timesteps)" if display_timesteps < max_timestep else ""
+    plt.title(f'Student Ability (θ) Evolution Over Time\nDeep-IRT Model (Global){total_info}', fontsize=14)
     plt.xlabel('Time Step')
     plt.ylabel('Student ID')
     plt.tight_layout()
@@ -233,7 +253,7 @@ def plot_beta_distribution(data, save_path=None):
     plt.close()
 
 
-def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='theta', kc_names=None, save_path=None):
+def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='theta', kc_names=None, save_path=None, max_display_timesteps=100):
     """
     Create per-knowledge component heatmap visualization.
     
@@ -245,6 +265,7 @@ def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='
         mode (str): Visualization mode ('theta' or 'probability')
         kc_names (dict, optional): Mapping of KC IDs to names
         save_path (str, optional): Path to save the visualization
+        max_display_timesteps (int): Maximum timesteps to display in plot (default: 100)
     """
     if student_idx >= len(kc_thetas):
         student_idx = 0
@@ -252,7 +273,11 @@ def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='
     data = kc_thetas[student_idx]
     n_timesteps, _ = data.shape
     
-    # Select knowledge components with highest variance for visualization
+    # Limit display to max_display_timesteps while keeping full computation info
+    display_timesteps = min(n_timesteps, max_display_timesteps)
+    display_data = data[:display_timesteps, :]
+    
+    # Select knowledge components with highest variance for visualization (using full data)
     kc_variations = np.std(data, axis=0)
     top_kcs = np.argsort(kc_variations)[-20:]
     
@@ -264,13 +289,13 @@ def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='
     ax2 = fig.add_subplot(gs[1, 0], sharex=ax1)  # Question timeline
     cax = fig.add_subplot(gs[0, 1])  # Colorbar
     
-    # Generate main heatmap visualization
-    data_subset = data[:, top_kcs].T
+    # Generate main heatmap visualization (display subset)
+    data_subset = display_data[:, top_kcs].T
     vmin, vmax = (-1.0, 1.0) if mode == 'theta' else (0.0, 1.0)
     
     im = ax1.imshow(data_subset, cmap='RdYlGn', aspect='auto', 
                    vmin=vmin, vmax=vmax, interpolation='bilinear',
-                   extent=[0, n_timesteps, 0, len(top_kcs)], origin='lower')
+                   extent=[0, display_timesteps, 0, len(top_kcs)], origin='lower')
     
     # Add colorbar with appropriate label using dedicated colorbar axis
     cbar = plt.colorbar(im, cax=cax)
@@ -279,7 +304,8 @@ def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='
     
     # Configure plot title and axis labels
     title = f'Student Ability Level' if mode == 'theta' else 'Per-KC Success Probability'
-    ax1.set_title(f'{title}\nStudent {student_idx} - Per-KC Evolution', fontsize=14, pad=20)
+    total_info = f" (showing first {display_timesteps} of {n_timesteps} timesteps)" if display_timesteps < n_timesteps else ""
+    ax1.set_title(f'{title}\nStudent {student_idx} - Per-KC Evolution{total_info}', fontsize=14, pad=20)
     ax1.set_ylabel('Knowledge Concepts', fontsize=12)
     
     # Configure Y-axis labels for knowledge components
@@ -292,14 +318,14 @@ def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='
     ax1.set_yticklabels(y_labels, fontsize=8)
     ax1.set_xticks([])
     
-    # Generate bottom subplot with correctness indicators
-    x_positions = np.linspace(0.5, n_timesteps - 0.5, n_timesteps)
+    # Generate bottom subplot with correctness indicators (limited to display_timesteps)
+    x_positions = np.linspace(0.5, display_timesteps - 0.5, display_timesteps)
     
     # Extract student-specific data
     student_questions = questions[student_idx] if student_idx < len(questions) else []
     student_correctness = correctness[student_idx] if student_idx < len(correctness) else []
     
-    for t in range(min(n_timesteps, len(student_questions))):
+    for t in range(min(display_timesteps, len(student_questions))):
         q_id = student_questions[t]
         # Handle case where q_id might be a list or array
         if hasattr(q_id, '__iter__') and not isinstance(q_id, str):
@@ -359,7 +385,7 @@ def load_data(filepath):
     return None
 
 
-def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None):
+def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None, max_display_timesteps=100):
     """
     Create visualizations from previously saved data without model inference.
     
@@ -399,13 +425,13 @@ def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None)
         if kc_thetas:
             # Generate theta heatmap visualization
             theta_path = os.path.join(output_dir, f"per_kc_theta_student_{student_idx}.png")
-            plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx, 'theta', None, theta_path)
+            plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx, 'theta', None, theta_path, max_display_timesteps)
             created_files.append(f"per_kc_theta_student_{student_idx}.png")
             
             # Generate probability heatmap visualization
             if probabilities:
                 prob_path = os.path.join(output_dir, f"per_kc_probability_student_{student_idx}.png")
-                plot_per_kc_heatmap(probabilities, questions, correctness, student_idx, 'probability', None, prob_path)
+                plot_per_kc_heatmap(probabilities, questions, correctness, student_idx, 'probability', None, prob_path, max_display_timesteps)
                 created_files.append(f"per_kc_probability_student_{student_idx}.png")
     
     # Generate global visualizations
@@ -414,7 +440,7 @@ def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None)
         
         # Generate global theta heatmap
         global_path = os.path.join(output_dir, "global_theta_heatmap.png")
-        plot_global_heatmap(global_data, global_path)
+        plot_global_heatmap(global_data, global_path, max_display_timesteps)
         created_files.append("global_theta_heatmap.png")
         
         # Generate beta distribution plot
@@ -440,6 +466,7 @@ def main():
     parser.add_argument('--config', type=str, help='Model config JSON file')
     parser.add_argument('--output_dir', type=str, default='visualizations', help='Output directory')
     parser.add_argument('--student_idx', type=int, default=0, help='Student index for per-KC plots')
+    parser.add_argument('--max_timesteps', type=int, default=100, help='Maximum timesteps to display in plots (optional, default: 100)')
     parser.add_argument('--load_data', type=str, help='Load saved data file')
     parser.add_argument('--save_data', type=str, help='Save extracted data file')
     
@@ -447,7 +474,7 @@ def main():
     
     # Handle visualization from saved data
     if args.load_data:
-        return visualize_from_data(args.load_data, args.output_dir, args.student_idx)
+        return visualize_from_data(args.load_data, args.output_dir, args.student_idx, max_display_timesteps=args.max_timesteps)
     
     # Handle model-based visualization
     if not args.checkpoint or not args.config:
@@ -460,13 +487,27 @@ def main():
     
     model = load_model(args.checkpoint, config)
     
-    # Initialize test data loader
+    # Initialize test data loader with dataset-specific sequence length
     try:
+        # Use dataset-specific max sequence lengths for visualization
+        dataset_seq_lens = {
+            'assist2009_updated': 1200,  # Max: 1,146
+            'STATICS': 1200,             # Max: 1,162  
+            'assist2015': 650,           # Max: 618
+            'fsaif1tof3': 700,           # Max: 668
+            'synthetic': 50              # Max: 50 (uniform)
+        }
+        
+        dataset_name = config.get('dataset_name', 'unknown')
+        max_seq_len = dataset_seq_lens.get(dataset_name, config.get('seq_len', 1000))
+        
+        print(f"Using dataset-specific seq_len={max_seq_len} for {dataset_name} visualization")
+        
         _, _, test_dataset = create_datasets(
             data_style=config['data_style'],
             data_dir=config['data_dir'],
             dataset_name=config['dataset_name'],
-            seq_len=config['seq_len'],
+            seq_len=max_seq_len,  # Use dataset-specific seq_len
             n_questions=config['n_questions'],
             k_fold=config['k_fold'],
             fold_idx=config['fold_idx']
@@ -476,8 +517,8 @@ def main():
         print(f"Error loading test data: {e}")
         return
     
-    # Extract data from model
-    global_data, per_kc_data = extract_data(model, test_loader)
+    # Extract data from model with full timesteps (limited students for faster processing)
+    global_data, per_kc_data = extract_data(model, test_loader, max_students=10, max_timesteps=None)
     
     # Create figs/dataset_name structure
     dataset_name = config.get('dataset_name', 'unknown')
@@ -492,7 +533,7 @@ def main():
     # Generate global visualizations
     if len(global_data['student_abilities']) > 0:
         global_path = os.path.join(args.output_dir, "global_theta_heatmap.png")
-        plot_global_heatmap(global_data, global_path)
+        plot_global_heatmap(global_data, global_path, args.max_timesteps)
         created_files.append("global_theta_heatmap.png")
         
         beta_path = os.path.join(args.output_dir, "beta_distribution.png")
@@ -508,7 +549,7 @@ def main():
             per_kc_data['all_kc_thetas_list'],
             per_kc_data['question_sequences'],
             per_kc_data['correctness_sequences'],
-            args.student_idx, 'theta', model.kc_names, theta_path
+            args.student_idx, 'theta', model.kc_names, theta_path, args.max_timesteps
         )
         created_files.append(f"per_kc_theta_student_{args.student_idx}.png")
         
@@ -518,7 +559,7 @@ def main():
                 per_kc_data['probability_data'],
                 per_kc_data['question_sequences'],
                 per_kc_data['correctness_sequences'],
-                args.student_idx, 'probability', model.kc_names, prob_path
+                args.student_idx, 'probability', model.kc_names, prob_path, args.max_timesteps
             )
             created_files.append(f"per_kc_probability_student_{args.student_idx}.png")
     

@@ -62,3 +62,19 @@
 2025-07-15 20:47:00,419 - INFO - Training completed!
 2025-07-15 20:47:00,419 - INFO - Best validation AUC: 0.9073
 2025-07-15 20:47:00,419 - INFO - Final test AUC: 0.9087
+2025-07-15 23:19:44,679 - INFO - === Training Deep-IRT ===
+2025-07-15 23:19:44,679 - INFO - Dataset: assist2009_updated
+2025-07-15 23:19:44,679 - INFO - Data style: yeung
+2025-07-15 23:19:44,679 - INFO - Fold: 0
+2025-07-15 23:19:44,679 - INFO - Epochs: 3
+2025-07-15 23:19:44,679 - INFO - Batch size: 32
+2025-07-15 23:19:44,680 - INFO - Learning rate: 0.001
+2025-07-15 23:19:44,769 - INFO - Using device: cuda
+2025-07-15 23:19:44,770 - INFO - Loading assist2009_updated dataset...
+2025-07-15 23:19:44,978 - INFO - Data: 2331/590/1230 | Model: 160,852 params | Per-KC: False
+2025-07-15 23:19:45,683 - INFO - Starting training...
+2025-07-15 23:20:16,918 - INFO - Final evaluation on test set...
+2025-07-15 23:20:18,424 - INFO - Test: Loss=0.3278, AUC=0.9076, Acc=0.8288
+2025-07-15 23:20:18,436 - INFO - Training completed!
+2025-07-15 23:20:18,437 - INFO - Best validation AUC: 0.0000
+2025-07-15 23:20:18,437 - INFO - Final test AUC: 0.9076

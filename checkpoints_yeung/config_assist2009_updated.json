@@ -1,5 +1,5 @@
 {
-  "n_questions": 100,
+  "n_questions": 111,
   "memory_size": 50,
   "key_memory_state_dim": 50,
   "value_memory_state_dim": 200,
@@ -12,7 +12,7 @@
   "batch_size": 32,
   "seq_len": 50,
   "learning_rate": 0.001,
-  "n_epochs": 5,
+  "n_epochs": 3,
   "max_grad_norm": 5.0,
   "weight_decay": 1e-05,
   "data_dir": "./data-yeung",
@@ -30,5 +30,7 @@
   "save_every": 10,
   "eval_every": 5,
   "verbose": true,
-  "tensorboard": true
+  "tensorboard": true,
+  "q_matrix_path": null,
+  "skill_mapping_path": "./data-yeung/assist2009_updated/assist2009_updated_skill_mapping.txt"
 }

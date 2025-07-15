@@ -25,3 +25,90 @@
 2025-07-15 20:26:43,954 - INFO - Training completed!
 2025-07-15 20:26:43,954 - INFO - Best validation AUC: 0.0000
 2025-07-15 20:26:43,954 - INFO - Final test AUC: 0.9310
+2025-07-15 23:15:51,458 - INFO - === Training Deep-IRT ===
+2025-07-15 23:15:51,459 - INFO - Dataset: assist2015
+2025-07-15 23:15:51,459 - INFO - Data style: yeung
+2025-07-15 23:15:51,459 - INFO - Fold: 0
+2025-07-15 23:15:51,459 - INFO - Epochs: 3
+2025-07-15 23:15:51,459 - INFO - Batch size: 32
+2025-07-15 23:15:51,459 - INFO - Learning rate: 0.001
+2025-07-15 23:15:51,638 - INFO - Using device: cuda
+2025-07-15 23:15:51,641 - INFO - Loading assist2015 dataset...
+2025-07-15 23:15:52,435 - INFO - Data: 11158/2777/5905 | Model: 155,902 params | Per-KC: False
+2025-07-15 23:15:53,668 - INFO - Starting training...
+2025-07-15 23:18:21,354 - INFO - Final evaluation on test set...
+2025-07-15 23:18:30,101 - INFO - Test: Loss=0.2649, AUC=0.9310, Acc=0.8763
+2025-07-15 23:18:30,117 - INFO - Training completed!
+2025-07-15 23:18:30,117 - INFO - Best validation AUC: 0.0000
+2025-07-15 23:18:30,117 - INFO - Final test AUC: 0.9310
+2025-07-15 23:23:39,812 - INFO - === Training Deep-IRT ===
+2025-07-15 23:23:39,813 - INFO - Dataset: assist2015
+2025-07-15 23:23:39,813 - INFO - Data style: yeung
+2025-07-15 23:23:39,813 - INFO - Fold: 0
+2025-07-15 23:23:39,813 - INFO - Epochs: 1
+2025-07-15 23:23:39,813 - INFO - Batch size: 32
+2025-07-15 23:23:39,813 - INFO - Learning rate: 0.001
+2025-07-15 23:23:39,938 - INFO - Using device: cuda
+2025-07-15 23:23:39,939 - INFO - Loading assist2015 dataset...
+2025-07-15 23:23:40,301 - INFO - Data: 11158/2777/5905 | Model: 155,902 params | Per-KC: False
+2025-07-15 23:23:40,881 - INFO - Starting training...
+2025-07-15 23:24:30,576 - INFO - Final evaluation on test set...
+2025-07-15 23:24:39,113 - INFO - Test: Loss=0.2644, AUC=0.9319, Acc=0.8744
+2025-07-15 23:24:39,133 - INFO - Training completed!
+2025-07-15 23:24:39,133 - INFO - Best validation AUC: 0.0000
+2025-07-15 23:24:39,133 - INFO - Final test AUC: 0.9319
+2025-07-15 23:27:38,266 - INFO - === Training Deep-IRT ===
+2025-07-15 23:27:38,266 - INFO - Dataset: assist2015
+2025-07-15 23:27:38,266 - INFO - Data style: yeung
+2025-07-15 23:27:38,266 - INFO - Fold: 0
+2025-07-15 23:27:38,267 - INFO - Epochs: 1
+2025-07-15 23:27:38,267 - INFO - Batch size: 32
+2025-07-15 23:27:38,267 - INFO - Learning rate: 0.001
+2025-07-15 23:27:38,358 - INFO - Using device: cuda
+2025-07-15 23:27:38,358 - INFO - Loading assist2015 dataset...
+2025-07-15 23:27:38,942 - INFO - Data: 11158/2777/5905 | Model: 1,023,351 params | Per-KC: True (100 KCs)
+2025-07-15 23:27:39,847 - INFO - Starting training...
+2025-07-15 23:31:08,425 - INFO - === Training Deep-IRT ===
+2025-07-15 23:31:08,425 - INFO - Dataset: assist2015
+2025-07-15 23:31:08,425 - INFO - Data style: yeung
+2025-07-15 23:31:08,425 - INFO - Fold: 0
+2025-07-15 23:31:08,425 - INFO - Epochs: 1
+2025-07-15 23:31:08,425 - INFO - Batch size: 32
+2025-07-15 23:31:08,425 - INFO - Learning rate: 0.001
+2025-07-15 23:31:08,535 - INFO - Using device: cuda
+2025-07-15 23:31:08,536 - INFO - Loading assist2015 dataset...
+2025-07-15 23:31:08,974 - INFO - Data: 11158/2777/5905 | Model: 1,023,351 params | Per-KC: True (100 KCs)
+2025-07-15 23:31:09,626 - INFO - Starting training...
+2025-07-16 00:47:32,659 - INFO - === Training Deep-IRT ===
+2025-07-16 00:47:32,660 - INFO - Dataset: assist2015
+2025-07-16 00:47:32,660 - INFO - Data style: yeung
+2025-07-16 00:47:32,660 - INFO - Fold: 0
+2025-07-16 00:47:32,660 - INFO - Epochs: 1
+2025-07-16 00:47:32,660 - INFO - Batch size: 32
+2025-07-16 00:47:32,660 - INFO - Learning rate: 0.001
+2025-07-16 00:47:32,803 - INFO - Using device: cuda
+2025-07-16 00:47:32,805 - INFO - Loading assist2015 dataset...
+2025-07-16 00:47:33,980 - INFO - Data: 11158/2777/5905 | Model: 1,023,351 params | Per-KC: True (100 KCs)
+2025-07-16 00:47:35,074 - INFO - Starting training...
+2025-07-16 00:50:40,132 - INFO - === Training Deep-IRT ===
+2025-07-16 00:50:40,132 - INFO - Dataset: assist2015
+2025-07-16 00:50:40,132 - INFO - Data style: yeung
+2025-07-16 00:50:40,132 - INFO - Fold: 0
+2025-07-16 00:50:40,132 - INFO - Epochs: 1
+2025-07-16 00:50:40,132 - INFO - Batch size: 32
+2025-07-16 00:50:40,132 - INFO - Learning rate: 0.001
+2025-07-16 00:50:40,346 - INFO - Using device: cuda
+2025-07-16 00:50:40,348 - INFO - Loading assist2015 dataset...
+2025-07-16 00:50:41,620 - INFO - Data: 11158/2777/5905 | Model: 1,023,351 params | Per-KC: True (100 KCs)
+2025-07-16 00:50:42,553 - INFO - Starting training...
+2025-07-16 00:59:54,912 - INFO - === Training Deep-IRT ===
+2025-07-16 00:59:54,913 - INFO - Dataset: assist2015
+2025-07-16 00:59:54,913 - INFO - Data style: yeung
+2025-07-16 00:59:54,913 - INFO - Fold: 0
+2025-07-16 00:59:54,913 - INFO - Epochs: 1
+2025-07-16 00:59:54,913 - INFO - Batch size: 32
+2025-07-16 00:59:54,913 - INFO - Learning rate: 0.001
+2025-07-16 00:59:55,071 - INFO - Using device: cuda
+2025-07-16 00:59:55,072 - INFO - Loading assist2015 dataset...
+2025-07-16 00:59:56,148 - INFO - Data: 11158/2777/5905 | Model: 1,023,351 params | Per-KC: True (100 KCs)
+2025-07-16 00:59:56,865 - INFO - Starting training...

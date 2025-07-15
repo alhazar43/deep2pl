@@ -10,9 +10,9 @@
   "use_discrimination": false,
   "dropout_rate": 0.1,
   "batch_size": 32,
-  "seq_len": 50,
+  "seq_len": 1000,
   "learning_rate": 0.001,
-  "n_epochs": 3,
+  "n_epochs": 1,
   "max_grad_norm": 5.0,
   "weight_decay": 1e-05,
   "data_dir": "./data-yeung",
@@ -31,6 +31,6 @@
   "eval_every": 5,
   "verbose": true,
   "tensorboard": true,
-  "q_matrix_path": null,
+  "q_matrix_path": "./data-yeung/assist2015/assist2015_qid_sid",
   "skill_mapping_path": null
 }

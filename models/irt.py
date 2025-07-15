@@ -167,7 +167,7 @@ class DeepIRTModel(nn.Module):
         Load Q-matrix and skill mapping information for per-KC mode configuration.
         
         Parameters:
-            q_matrix_path (str): Path to the Q-matrix CSV file
+            q_matrix_path (str): Path to the Q-matrix file (CSV or qid_sid format)
             skill_mapping_path (str): Path to the skill mapping file
             
         Returns:
@@ -181,30 +181,76 @@ class DeepIRTModel(nn.Module):
         kc_names = {}
         
         try:
-            # Load Q-matrix from CSV file
-            with open(q_matrix_path, 'r') as f:
-                for q_idx, line in enumerate(f, 1):
-                    kc_vector = [int(x) for x in line.strip().split(',')]
-                    kcs = [i for i, val in enumerate(kc_vector) if val == 1]
-                    q_to_kc[q_idx] = kcs if kcs else [0]  # Default to KC 0 if none
-            
-            n_kcs = len(kc_vector)
-            
-            # Load skill mapping if available
-            if skill_mapping_path and os.path.exists(skill_mapping_path):
-                with open(skill_mapping_path, 'r') as f:
+            # Detect file format and parse accordingly
+            if q_matrix_path.endswith('.csv') and 'Qmatrix' in q_matrix_path:
+                # Multi-hot Q-matrix format (STATICS style)
+                with open(q_matrix_path, 'r') as f:
+                    for q_idx, line in enumerate(f, 1):
+                        kc_vector = [int(x) for x in line.strip().split(',')]
+                        kcs = [i for i, val in enumerate(kc_vector) if val == 1]
+                        q_to_kc[q_idx] = kcs if kcs else [0]  # Default to KC 0 if none
+                
+                n_kcs = len(kc_vector)
+                
+            elif 'qid_sid' in q_matrix_path or 'conceptname_question_id' in q_matrix_path:
+                # 1-to-1 mapping format (assist2015, assist2009_updated, fsaif1tof3)
+                max_qid = 0
+                max_kc = 0
+                
+                with open(q_matrix_path, 'r') as f:
                     for line in f:
-                        parts = line.strip().split('\t')
-                        if len(parts) >= 2:
-                            kc_id = int(parts[0])
-                            kc_name = parts[1]
-                            if kc_id < n_kcs:
-                                kc_names[kc_id] = kc_name
+                        line = line.strip()
+                        if not line:
+                            continue
+                            
+                        if 'conceptname_question_id' in q_matrix_path:
+                            # CSV format: concept_name,question_id
+                            parts = line.split(',')
+                            if len(parts) >= 2:
+                                kc_name = parts[0].strip()
+                                q_id = int(parts[1].strip())
+                                
+                                # Map concept name to KC index
+                                if kc_name not in kc_names:
+                                    kc_id = len(kc_names)
+                                    kc_names[kc_id] = kc_name
+                                else:
+                                    kc_id = next(k for k, v in kc_names.items() if v == kc_name)
+                                
+                                q_to_kc[q_id] = [kc_id]
+                                max_qid = max(max_qid, q_id)
+                                max_kc = max(max_kc, kc_id)
+                        else:
+                            # Tab-separated format: question_id\tskill_id
+                            parts = line.split('\t')
+                            if len(parts) >= 2:
+                                q_id = int(parts[0])
+                                kc_id = int(parts[1]) - 1  # Convert to 0-indexed
+                                q_to_kc[q_id] = [kc_id]
+                                max_qid = max(max_qid, q_id)
+                                max_kc = max(max_kc, kc_id)
+                
+                n_kcs = max_kc + 1
+                
+                # Load skill mapping if available
+                if skill_mapping_path and os.path.exists(skill_mapping_path):
+                    with open(skill_mapping_path, 'r') as f:
+                        for line in f:
+                            parts = line.strip().split('\t')
+                            if len(parts) >= 2:
+                                kc_id = int(parts[0]) - 1  # Convert to 0-indexed
+                                kc_name = parts[1]
+                                if 0 <= kc_id < n_kcs:
+                                    kc_names[kc_id] = kc_name
+                
+                # Assign default names for KCs without explicit names
+                for i in range(n_kcs):
+                    if i not in kc_names:
+                        kc_names[i] = f"KC_{i+1}"
             
-            # Assign default names for knowledge components without explicit names
-            for i in range(n_kcs):
-                if i not in kc_names:
-                    kc_names[i] = f"KC_{i+1}"
+            else:
+                print(f"Warning: Unknown Q-matrix format: {q_matrix_path}")
+                return False, {}, {}, 0
             
             print(f"Successfully loaded Q-matrix: {len(q_to_kc)} questions, {n_kcs} knowledge components")
             return True, q_to_kc, kc_names, n_kcs

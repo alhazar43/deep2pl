@@ -10,7 +10,7 @@
   "use_discrimination": false,
   "dropout_rate": 0.1,
   "batch_size": 16,
-  "seq_len": 50,
+  "seq_len": 1000,
   "learning_rate": 0.001,
   "n_epochs": 1,
   "max_grad_norm": 5.0,
