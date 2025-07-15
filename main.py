@@ -1,137 +1,217 @@
 #!/usr/bin/env python3
 """
-Main Script for Deep-IRT: Training + Visualization
-Combines training and automatic visualization generation in one pipeline
+Main Pipeline Script for Deep Item Response Theory Model
+
+This module provides a unified interface for training Deep-IRT models and 
+generating comprehensive visualizations. It supports both individual component 
+execution and complete pipeline workflows.
+
+Features:
+- Unified training and visualization pipeline
+- Support for multiple datasets and data formats
+- Automatic checkpoint management
+- Organized output structure with figs/dataset_name directories
+- Data persistence for efficient re-visualization
+
+Author: Deep-IRT Pipeline System
 """
 
 import os
 import sys
 import argparse
-import json
 import subprocess
 from datetime import datetime
 
 
-def run_training(args):
-    """Run training using train.py with specified arguments."""
-    print(f"Training {args.dataset} ({args.data_style}) - {args.epochs} epochs")
+def run_command(cmd, desc="Running command", show_progress=False):
+    """
+    Execute subprocess command with comprehensive error handling.
     
-    train_cmd = [
+    Parameters:
+        cmd (list): Command and arguments to execute
+        desc (str): Description of the command being run
+        show_progress (bool): Whether to show real-time output
+        
+    Returns:
+        tuple: (success_status, output) where success_status is boolean
+    """
+    print(f"{desc}...")
+    
+    if show_progress:
+        # Don't capture output to show real-time progress
+        result = subprocess.run(cmd)
+        return result.returncode == 0, ""
+    else:
+        # Capture output for error handling
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print(f"Error: {desc} failed")
+            if result.stderr:
+                print(result.stderr)
+            return False, result.stdout
+        
+        return True, result.stdout
+
+
+def find_checkpoint_files(data_style, dataset):
+    """
+    Locate checkpoint and configuration files for a given dataset.
+    
+    Parameters:
+        data_style (str): Data format style ('yeung' or 'torch')
+        dataset (str): Dataset name
+        
+    Returns:
+        tuple: (checkpoint_path, config_path) with file paths or None if not found
+    """
+    checkpoint_dir = f"checkpoints_{data_style}"
+    
+    # Search for checkpoint files in order of preference
+    checkpoints = [
+        f"best_model_{dataset}.pth",
+        f"final_model_{dataset}.pth"
+    ]
+    
+    checkpoint_path = None
+    for ckpt in checkpoints:
+        path = os.path.join(checkpoint_dir, ckpt)
+        if os.path.exists(path):
+            checkpoint_path = path
+            break
+    
+    config_path = os.path.join(checkpoint_dir, f"config_{dataset}.json")
+    
+    return checkpoint_path, config_path
+
+
+def train_model(args):
+    """
+    Execute model training with specified configuration.
+    
+    Parameters:
+        args (Namespace): Parsed command-line arguments containing training parameters
+        
+    Returns:
+        tuple: (success_status, checkpoint_path, config_path)
+    """
+    cmd = [
         sys.executable, "train.py",
         "--dataset", args.dataset,
         "--data_style", args.data_style,
         "--fold", str(args.fold)
     ]
     
-    # Add optional parameters
-    if args.epochs is not None:
-        train_cmd.extend(["--epochs", str(args.epochs)])
-    if args.batch_size is not None:
-        train_cmd.extend(["--batch_size", str(args.batch_size)])
-    if args.learning_rate is not None:
-        train_cmd.extend(["--learning_rate", str(args.learning_rate)])
+    # Append optional training parameters if specified
+    if args.epochs:
+        cmd.extend(["--epochs", str(args.epochs)])
+    if args.batch_size:
+        cmd.extend(["--batch_size", str(args.batch_size)])
+    if args.learning_rate:
+        cmd.extend(["--learning_rate", str(args.learning_rate)])
     
-    # Run training
-    result = subprocess.run(train_cmd, capture_output=False, text=True)
+    success, output = run_command(cmd, f"Training {args.dataset} ({args.data_style})", show_progress=True)
     
-    if result.returncode != 0:
-        print(f"Training failed")
-        return False, None, None
+    if success:
+        checkpoint_path, config_path = find_checkpoint_files(args.data_style, args.dataset)
+        if checkpoint_path and os.path.exists(config_path):
+            print("Training completed successfully")
+            return True, checkpoint_path, config_path
     
-    # Find the generated checkpoint and config
-    checkpoint_dir = f"checkpoints_{args.data_style}"
-    final_checkpoint = os.path.join(checkpoint_dir, f"final_model_{args.dataset}.pth")
-    best_checkpoint = os.path.join(checkpoint_dir, f"best_model_{args.dataset}.pth")
-    config_file = os.path.join(checkpoint_dir, f"config_{args.dataset}.json")
-    
-    # Use best checkpoint if available, otherwise final
-    if os.path.exists(best_checkpoint):
-        checkpoint_path = best_checkpoint
-    elif os.path.exists(final_checkpoint):
-        checkpoint_path = final_checkpoint
-    else:
-        print(f"No checkpoint found in {checkpoint_dir}")
-        return False, None, None
-    
-    if not os.path.exists(config_file):
-        print(f"Config file not found: {config_file}")
-        return False, None, None
-    
-    print(f"Training completed")
-    return True, checkpoint_path, config_file
+    print("Training failed or files not found")
+    return False, None, None
 
 
-def run_visualization(checkpoint_path, config_file, output_dir, student_idx=0, save_data_path=None):
-    """Run visualization using visualize.py."""
-    print(f"Generating visualizations...")
+def create_visualizations(checkpoint_path, config_path, output_dir, student_idx=0, save_data_path=None):
+    """
+    Generate comprehensive visualizations from trained model.
     
-    viz_cmd = [
+    Parameters:
+        checkpoint_path (str): Path to model checkpoint
+        config_path (str): Path to model configuration file
+        output_dir (str): Directory for saving visualizations
+        student_idx (int): Student index for per-KC visualizations
+        save_data_path (str, optional): Path to save extracted data
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    cmd = [
         sys.executable, "visualize.py",
         "--checkpoint", checkpoint_path,
-        "--config", config_file,
+        "--config", config_path,
         "--output_dir", output_dir,
         "--student_idx", str(student_idx)
     ]
     
-    # Add save data option if specified
     if save_data_path:
-        viz_cmd.extend(["--save_data", save_data_path])
+        cmd.extend(["--save_data", save_data_path])
     
-    # Run visualization
-    result = subprocess.run(viz_cmd, capture_output=True, text=True)
+    success, output = run_command(cmd, "Generating visualizations")
     
-    if result.returncode != 0:
-        print(f"Visualization failed:")
-        print(result.stderr)
-        return False
+    if success:
+        print(output)
     
-    print(result.stdout)
-    return True
+    return success
 
 
-def run_visualization_from_saved_data(data_path, output_dir, student_idx=0):
-    """Run visualization from saved data without model inference."""
-    print(f"Generating visualizations from saved data...")
+def create_visualizations_from_data(data_path, output_dir, student_idx=0):
+    """
+    Generate visualizations from previously saved data without model inference.
     
-    viz_cmd = [
+    Parameters:
+        data_path (str): Path to saved data pickle file
+        output_dir (str): Directory for saving visualizations
+        student_idx (int): Student index for per-KC visualizations
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    cmd = [
         sys.executable, "visualize.py",
         "--load_data", data_path,
         "--output_dir", output_dir,
         "--student_idx", str(student_idx)
     ]
     
-    # Run visualization
-    result = subprocess.run(viz_cmd, capture_output=True, text=True)
+    success, output = run_command(cmd, "Generating visualizations from saved data")
     
-    if result.returncode != 0:
-        print(f"Visualization from saved data failed:")
-        print(result.stderr)
-        return False
+    if success:
+        print(output)
     
-    print(result.stdout)
-    return True
+    return success
 
 
-def print_summary(args, checkpoint_path, output_dir, training_success, viz_success):
-    """Print final summary of the pipeline."""
-    print(f"\n{'='*50}")
-    status = "SUCCESS" if training_success and viz_success else "FAILED"
-    print(f"Pipeline {status}")
-    print(f"{'='*50}")
-    if training_success and viz_success:
-        print(f"Results: {output_dir}/")
-        if os.path.exists(output_dir):
-            files = [f for f in os.listdir(output_dir) if f.endswith('.png')]
-            print(f"Generated {len(files)} visualizations")
+def get_default_epochs(dataset, data_style):
+    """
+    Determine appropriate default epoch count based on dataset and data style.
+    
+    Parameters:
+        dataset (str): Dataset name
+        data_style (str): Data format style
+        
+    Returns:
+        int: Recommended number of training epochs
+    """
+    if dataset == "STATICS" and data_style == "yeung":
+        return 20
+    elif data_style == "torch":
+        return 25
     else:
-        if not training_success:
-            print(f"Training failed")
-        if not viz_success:
-            print(f"Visualization failed")
+        return 20
 
 
 def main():
-    """Main pipeline function."""
+    """
+    Main pipeline function coordinating training and visualization workflows.
+    
+    Handles command-line argument parsing, validates inputs, and orchestrates
+    the complete Deep-IRT pipeline including training, visualization, and
+    data persistence.
+    
+    Returns:
+        int: Exit code (0 for success, 1 for failure)
+    """
     parser = argparse.ArgumentParser(
         description='Deep-IRT Training + Visualization Pipeline',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -140,143 +220,113 @@ Examples:
   # Quick STATICS training with per-KC mode
   python main.py --dataset STATICS --data_style yeung --epochs 5
 
-  # Large-scale STATICS training
-  python main.py --dataset STATICS --data_style yeung --epochs 50 --batch_size 32
-
   # Standard assist2015 training
   python main.py --dataset assist2015 --data_style torch --epochs 25
 
-  # Custom configuration
-  python main.py --dataset STATICS --data_style yeung --epochs 30 --learning_rate 0.0005 --student_idx 5
+  # Visualization only from saved data
+  python main.py --viz_only --load_data saved_data.pkl
         """
     )
     
-    # Required arguments
-    parser.add_argument('--dataset', type=str, required=True,
-                        choices=['assist2009_updated', 'assist2015', 'STATICS', 'assist2009'],
+    # Define required command-line arguments
+    parser.add_argument('--dataset', type=str, 
+                        choices=['assist2009_updated', 'assist2015', 'STATICS', 'assist2009', 'fsaif1tof3', 'synthetic'],
                         help='Dataset name')
-    parser.add_argument('--data_style', type=str, required=True,
+    parser.add_argument('--data_style', type=str, 
                         choices=['yeung', 'torch'],
                         help='Data format style')
     
-    # Training arguments
-    parser.add_argument('--fold', type=int, default=0,
-                        help='Fold index for cross-validation (0-4)')
-    parser.add_argument('--epochs', type=int, default=None,
-                        help='Number of epochs (default: dataset-specific)')
-    parser.add_argument('--batch_size', type=int, default=None,
-                        help='Batch size (default: dataset-specific)')
-    parser.add_argument('--learning_rate', type=float, default=None,
-                        help='Learning rate (default: 0.001)')
+    # Define training configuration arguments
+    parser.add_argument('--fold', type=int, default=0, help='Fold index (0-4)')
+    parser.add_argument('--epochs', type=int, help='Number of epochs')
+    parser.add_argument('--batch_size', type=int, help='Batch size')
+    parser.add_argument('--learning_rate', type=float, help='Learning rate')
     
-    # Visualization arguments
-    parser.add_argument('--student_idx', type=int, default=0,
-                        help='Student index for per-KC visualization (default: 0)')
-    parser.add_argument('--output_dir', type=str, default=None,
-                        help='Output directory for visualizations (default: results_DATASET_TIMESTAMP)')
-    parser.add_argument('--save_data', type=str, default=None,
-                        help='Path to save extracted theta/beta data for reuse (default: saved_data_DATASET.pkl)')
-    parser.add_argument('--load_data', type=str, default=None,
-                        help='Path to load saved data for visualization without training/inference')
+    # Define visualization configuration arguments
+    parser.add_argument('--student_idx', type=int, default=0, help='Student index for per-KC plots')
+    parser.add_argument('--output_dir', type=str, help='Output directory')
+    parser.add_argument('--save_data', type=str, help='Save extracted data file')
+    parser.add_argument('--load_data', type=str, help='Load saved data file')
     
-    # Pipeline control
-    parser.add_argument('--skip_training', action='store_true',
-                        help='Skip training and only run visualization')
-    parser.add_argument('--skip_visualization', action='store_true',
-                        help='Skip visualization and only run training')
-    parser.add_argument('--viz_only', action='store_true',
-                        help='Only run visualization from saved data (requires --load_data)')
+    # Define pipeline control arguments
+    parser.add_argument('--skip_training', action='store_true', help='Skip training')
+    parser.add_argument('--skip_visualization', action='store_true', help='Skip visualization')
+    parser.add_argument('--viz_only', action='store_true', help='Only run visualization from saved data')
     
     args = parser.parse_args()
     
-    # Validation
+    # Validate command-line arguments
     if args.fold < 0 or args.fold >= 5:
         print("Error: Fold index must be between 0 and 4")
-        return
+        return 1
     
-    # Check if this is visualization-only mode
+    # Handle visualization-only workflow
     if args.viz_only:
         if not args.load_data:
             print("Error: --viz_only requires --load_data")
-            return
-        if args.output_dir is None:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            args.output_dir = f"viz_results_{timestamp}"
+            return 1
         
-        success = run_visualization_from_saved_data(args.load_data, args.output_dir, args.student_idx)
-        print(f"Visualization from saved data: {'SUCCESS' if success else 'FAILED'}")
+        output_dir = args.output_dir or os.path.join('figs', 'saved_data_viz')
+        success = create_visualizations_from_data(args.load_data, output_dir, args.student_idx)
         return 0 if success else 1
     
-    # Set default output directory
-    if args.output_dir is None:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        args.output_dir = f"results_{args.dataset}_{timestamp}"
+    # Handle standard pipeline workflow
+    if not args.dataset or not args.data_style:
+        print("Error: --dataset and --data_style are required")
+        return 1
     
-    # Set default save data path
-    if args.save_data is None and not args.skip_visualization:
+    # Configure default parameters
+    if not args.epochs:
+        args.epochs = get_default_epochs(args.dataset, args.data_style)
+    
+    if not args.output_dir:
+        args.output_dir = os.path.join('figs', args.dataset)
+    
+    if not args.save_data and not args.skip_visualization:
         args.save_data = f"saved_data_{args.dataset}_{args.data_style}.pkl"
     
-    # Set default epochs if not specified
-    if args.epochs is None:
-        if args.dataset == "STATICS" and args.data_style == "yeung":
-            args.epochs = 20  # Default for per-KC mode
-        elif args.data_style == "torch":
-            args.epochs = 25  # Default for global mode
-        else:
-            args.epochs = 20  # General default
-    
+    # Display pipeline configuration
     print(f"Deep-IRT Pipeline: {args.dataset} ({args.data_style})")
-    config_str = f"{args.epochs}ep"
-    if args.batch_size:
-        config_str += f", bs{args.batch_size}"
-    if args.learning_rate:
-        config_str += f", lr{args.learning_rate}"
-    print(f"Config: {config_str}, fold{args.fold} -> {args.output_dir}")
+    print(f"Config: {args.epochs} epochs, fold {args.fold}")
+    print(f"Output: {args.output_dir}")
     
     training_success = True
     checkpoint_path = None
-    config_file = None
+    config_path = None
     
-    # Training phase
+    # Execute training phase
     if not args.skip_training:
-        training_success, checkpoint_path, config_file = run_training(args)
-        
+        training_success, checkpoint_path, config_path = train_model(args)
         if not training_success:
-            print("Training failed. Exiting pipeline.")
-            return
+            print("Pipeline failed at training stage")
+            return 1
     else:
-        # Find existing checkpoint
-        checkpoint_dir = f"checkpoints_{args.data_style}"
-        best_checkpoint = os.path.join(checkpoint_dir, f"best_model_{args.dataset}.pth")
-        final_checkpoint = os.path.join(checkpoint_dir, f"final_model_{args.dataset}.pth")
-        config_file = os.path.join(checkpoint_dir, f"config_{args.dataset}.json")
-        
-        if os.path.exists(best_checkpoint):
-            checkpoint_path = best_checkpoint
-        elif os.path.exists(final_checkpoint):
-            checkpoint_path = final_checkpoint
-        else:
+        # Locate existing checkpoint files
+        checkpoint_path, config_path = find_checkpoint_files(args.data_style, args.dataset)
+        if not checkpoint_path or not os.path.exists(config_path):
             print(f"No existing checkpoint found for {args.dataset} ({args.data_style})")
-            return
-        
-        if not os.path.exists(config_file):
-            print(f"Config file not found: {config_file}")
-            return
+            return 1
     
-    # Visualization phase
+    # Execute visualization phase
     viz_success = True
     if not args.skip_visualization:
         os.makedirs(args.output_dir, exist_ok=True)
-        viz_success = run_visualization(checkpoint_path, config_file, args.output_dir, 
-                                      args.student_idx, args.save_data)
+        viz_success = create_visualizations(checkpoint_path, config_path, args.output_dir, 
+                                          args.student_idx, args.save_data)
     
-    # Summary
-    print_summary(args, checkpoint_path, args.output_dir, training_success, viz_success)
-    
-    # Success indicators for automation
-    return 0 if (training_success and viz_success) else 1
+    # Report final pipeline status
+    if training_success and viz_success:
+        print(f"\n{'='*50}")
+        print("Pipeline completed successfully!")
+        print(f"Results saved to: {args.output_dir}")
+        print(f"{'='*50}")
+        return 0
+    else:
+        print(f"\n{'='*50}")
+        print("Pipeline failed!")
+        print(f"{'='*50}")
+        return 1
 
 
 if __name__ == "__main__":
-    exit_code = main()
-    sys.exit(exit_code)
+    sys.exit(main())

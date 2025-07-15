@@ -19,7 +19,7 @@ from datetime import datetime
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score, accuracy_score
 
-from models.deep_irt_model import UnifiedDeepIRTModel
+from models.irt import DeepIRTModel
 from data.dataloader import create_datasets, create_dataloader
 from utils.config import Config
 
@@ -74,6 +74,24 @@ def get_dataset_config(dataset_name, data_style, fold_idx=0):
         elif dataset_name == "assist2015":
             config.dataset_name = "assist2015"
             config.n_questions = 100
+            config.seq_len = 50
+            config.batch_size = 32
+            config.n_epochs = 20
+            config.q_matrix_path = None
+            config.skill_mapping_path = None
+            
+        elif dataset_name == "fsaif1tof3":
+            config.dataset_name = "fsaif1tof3"
+            config.n_questions = 100  # Will be determined from data
+            config.seq_len = 50
+            config.batch_size = 32
+            config.n_epochs = 20
+            config.q_matrix_path = None
+            config.skill_mapping_path = None
+            
+        elif dataset_name == "synthetic":
+            config.dataset_name = "synthetic"
+            config.n_questions = 100  # Will be determined from data
             config.seq_len = 50
             config.batch_size = 32
             config.n_epochs = 20
@@ -213,7 +231,7 @@ def train_model(config, logger):
     valid_loader = create_dataloader(valid_dataset, config.batch_size, shuffle=False)
     test_loader = create_dataloader(test_dataset, config.batch_size, shuffle=False)
     
-    model = UnifiedDeepIRTModel(
+    model = DeepIRTModel(
         n_questions=config.n_questions,
         memory_size=config.memory_size,
         key_memory_state_dim=config.key_memory_state_dim,
@@ -312,7 +330,7 @@ def main():
     """Main function with command line interface."""
     parser = argparse.ArgumentParser(description='Train Deep-IRT Model')
     parser.add_argument('--dataset', type=str, required=True,
-                        choices=['assist2009_updated', 'assist2015', 'STATICS', 'assist2009'],
+                        choices=['assist2009_updated', 'assist2015', 'STATICS', 'assist2009', 'fsaif1tof3', 'synthetic'],
                         help='Dataset name')
     parser.add_argument('--data_style', type=str, required=True,
                         choices=['yeung', 'torch'],

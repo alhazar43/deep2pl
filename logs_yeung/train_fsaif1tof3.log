@@ -1,0 +1,17 @@
+2025-07-15 20:48:16,827 - INFO - === Training Deep-IRT ===
+2025-07-15 20:48:16,828 - INFO - Dataset: fsaif1tof3
+2025-07-15 20:48:16,828 - INFO - Data style: yeung
+2025-07-15 20:48:16,828 - INFO - Fold: 0
+2025-07-15 20:48:16,828 - INFO - Epochs: 5
+2025-07-15 20:48:16,828 - INFO - Batch size: 32
+2025-07-15 20:48:16,828 - INFO - Learning rate: 0.001
+2025-07-15 20:48:16,950 - INFO - Using device: cuda
+2025-07-15 20:48:16,950 - INFO - Loading fsaif1tof3 dataset...
+2025-07-15 20:48:17,116 - INFO - Data: 173/44/93 | Model: 155,902 params | Per-KC: False
+2025-07-15 20:48:17,688 - INFO - Starting training...
+2025-07-15 20:48:20,538 - INFO - Epoch 5: Train=0.6433, Valid=0.6469, AUC=0.6164
+2025-07-15 20:48:20,553 - INFO - Final evaluation on test set...
+2025-07-15 20:48:20,631 - INFO - Test: Loss=0.6680, AUC=0.5748, Acc=0.5394
+2025-07-15 20:48:20,639 - INFO - Training completed!
+2025-07-15 20:48:20,639 - INFO - Best validation AUC: 0.6164
+2025-07-15 20:48:20,639 - INFO - Final test AUC: 0.5748

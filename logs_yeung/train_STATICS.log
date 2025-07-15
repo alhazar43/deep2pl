@@ -98,3 +98,103 @@
 2025-07-11 16:39:16,278 - INFO - Training completed!
 2025-07-11 16:39:16,278 - INFO - Best validation AUC: 0.8436
 2025-07-11 16:39:16,278 - INFO - Final test AUC: 0.8158
+2025-07-15 19:37:52,083 - INFO - === Training Deep-IRT ===
+2025-07-15 19:37:52,084 - INFO - Dataset: STATICS
+2025-07-15 19:37:52,084 - INFO - Data style: yeung
+2025-07-15 19:37:52,084 - INFO - Fold: 0
+2025-07-15 19:37:52,084 - INFO - Epochs: 20
+2025-07-15 19:37:52,084 - INFO - Batch size: 32
+2025-07-15 19:37:52,084 - INFO - Learning rate: 0.001
+2025-07-15 19:37:52,281 - INFO - Using device: cuda
+2025-07-15 19:37:52,283 - INFO - Loading STATICS dataset...
+2025-07-15 19:37:52,589 - INFO - Data: 179/50/104 | Model: 1,511,301 params | Per-KC: True (98 KCs)
+2025-07-15 19:37:53,525 - INFO - Starting training...
+2025-07-15 19:42:21,153 - INFO - === Training Deep-IRT ===
+2025-07-15 19:42:21,153 - INFO - Dataset: STATICS
+2025-07-15 19:42:21,153 - INFO - Data style: yeung
+2025-07-15 19:42:21,153 - INFO - Fold: 0
+2025-07-15 19:42:21,153 - INFO - Epochs: 20
+2025-07-15 19:42:21,153 - INFO - Batch size: 32
+2025-07-15 19:42:21,153 - INFO - Learning rate: 0.001
+2025-07-15 19:42:21,318 - INFO - Using device: cuda
+2025-07-15 19:42:21,319 - INFO - Loading STATICS dataset...
+2025-07-15 19:42:21,608 - INFO - Data: 179/50/104 | Model: 1,511,301 params | Per-KC: True (98 KCs)
+2025-07-15 19:42:22,158 - INFO - Starting training...
+2025-07-15 19:44:17,513 - INFO - === Training Deep-IRT ===
+2025-07-15 19:44:17,513 - INFO - Dataset: STATICS
+2025-07-15 19:44:17,513 - INFO - Data style: yeung
+2025-07-15 19:44:17,513 - INFO - Fold: 0
+2025-07-15 19:44:17,513 - INFO - Epochs: 20
+2025-07-15 19:44:17,513 - INFO - Batch size: 32
+2025-07-15 19:44:17,513 - INFO - Learning rate: 0.001
+2025-07-15 19:44:17,603 - INFO - Using device: cuda
+2025-07-15 19:44:17,604 - INFO - Loading STATICS dataset...
+2025-07-15 19:44:18,023 - INFO - Data: 179/50/104 | Model: 1,511,301 params | Per-KC: True (98 KCs)
+2025-07-15 19:44:18,851 - INFO - Starting training...
+2025-07-15 19:44:31,949 - INFO - Epoch 5: Train=0.3192, Valid=0.3545, AUC=0.8048
+2025-07-15 19:45:53,659 - INFO - === Training Deep-IRT ===
+2025-07-15 19:45:53,659 - INFO - Dataset: STATICS
+2025-07-15 19:45:53,659 - INFO - Data style: yeung
+2025-07-15 19:45:53,659 - INFO - Fold: 0
+2025-07-15 19:45:53,659 - INFO - Epochs: 1
+2025-07-15 19:45:53,659 - INFO - Batch size: 16
+2025-07-15 19:45:53,659 - INFO - Learning rate: 0.001
+2025-07-15 19:45:53,787 - INFO - Using device: cuda
+2025-07-15 19:45:53,787 - INFO - Loading STATICS dataset...
+2025-07-15 19:45:54,237 - INFO - Data: 179/50/104 | Model: 1,511,301 params | Per-KC: True (98 KCs)
+2025-07-15 19:45:54,848 - INFO - Starting training...
+2025-07-15 19:47:02,196 - INFO - Final evaluation on test set...
+2025-07-15 19:47:13,928 - INFO - Epoch 10: Train=0.2865, Valid=0.3364, AUC=0.8386
+2025-07-15 19:47:14,143 - INFO - Test: Loss=0.3862, AUC=0.6924, Acc=0.8567
+2025-07-15 19:47:14,339 - INFO - Training completed!
+2025-07-15 19:47:14,339 - INFO - Best validation AUC: 0.0000
+2025-07-15 19:47:14,339 - INFO - Final test AUC: 0.6924
+2025-07-15 19:49:21,117 - INFO - Epoch 15: Train=0.2658, Valid=0.3317, AUC=0.8486
+2025-07-15 19:50:22,638 - INFO - === Training Deep-IRT ===
+2025-07-15 19:50:22,638 - INFO - Dataset: STATICS
+2025-07-15 19:50:22,638 - INFO - Data style: yeung
+2025-07-15 19:50:22,638 - INFO - Fold: 0
+2025-07-15 19:50:22,638 - INFO - Epochs: 2
+2025-07-15 19:50:22,638 - INFO - Batch size: 32
+2025-07-15 19:50:22,638 - INFO - Learning rate: 0.001
+2025-07-15 19:50:22,811 - INFO - Using device: cuda
+2025-07-15 19:50:22,811 - INFO - Loading STATICS dataset...
+2025-07-15 19:50:23,090 - INFO - Data: 179/50/104 | Model: 1,511,301 params | Per-KC: True (98 KCs)
+2025-07-15 19:50:23,615 - INFO - Starting training...
+2025-07-15 19:51:10,886 - INFO - Final evaluation on test set...
+2025-07-15 19:51:15,489 - INFO - Test: Loss=0.3830, AUC=0.7125, Acc=0.8563
+2025-07-15 19:51:15,704 - INFO - Training completed!
+2025-07-15 19:51:15,705 - INFO - Best validation AUC: 0.0000
+2025-07-15 19:51:15,705 - INFO - Final test AUC: 0.7125
+2025-07-15 19:54:21,934 - INFO - === Training Deep-IRT ===
+2025-07-15 19:54:21,934 - INFO - Dataset: STATICS
+2025-07-15 19:54:21,934 - INFO - Data style: yeung
+2025-07-15 19:54:21,934 - INFO - Fold: 0
+2025-07-15 19:54:21,934 - INFO - Epochs: 2
+2025-07-15 19:54:21,934 - INFO - Batch size: 32
+2025-07-15 19:54:21,934 - INFO - Learning rate: 0.001
+2025-07-15 19:54:22,052 - INFO - Using device: cuda
+2025-07-15 19:54:22,053 - INFO - Loading STATICS dataset...
+2025-07-15 19:54:22,328 - INFO - Data: 179/50/104 | Model: 1,511,301 params | Per-KC: True (98 KCs)
+2025-07-15 19:54:22,843 - INFO - Starting training...
+2025-07-15 19:55:12,979 - INFO - Final evaluation on test set...
+2025-07-15 19:55:17,827 - INFO - Test: Loss=0.3830, AUC=0.7125, Acc=0.8563
+2025-07-15 19:55:18,038 - INFO - Training completed!
+2025-07-15 19:55:18,038 - INFO - Best validation AUC: 0.0000
+2025-07-15 19:55:18,038 - INFO - Final test AUC: 0.7125
+2025-07-15 20:03:13,495 - INFO - === Training Deep-IRT ===
+2025-07-15 20:03:13,495 - INFO - Dataset: STATICS
+2025-07-15 20:03:13,495 - INFO - Data style: yeung
+2025-07-15 20:03:13,495 - INFO - Fold: 0
+2025-07-15 20:03:13,495 - INFO - Epochs: 1
+2025-07-15 20:03:13,495 - INFO - Batch size: 16
+2025-07-15 20:03:13,495 - INFO - Learning rate: 0.001
+2025-07-15 20:03:13,585 - INFO - Using device: cuda
+2025-07-15 20:03:13,586 - INFO - Loading STATICS dataset...
+2025-07-15 20:03:13,873 - INFO - Data: 179/50/104 | Model: 1,511,301 params | Per-KC: True (98 KCs)
+2025-07-15 20:03:14,400 - INFO - Starting training...
+2025-07-15 20:03:59,017 - INFO - Final evaluation on test set...
+2025-07-15 20:04:06,696 - INFO - Test: Loss=0.3862, AUC=0.6924, Acc=0.8567
+2025-07-15 20:04:06,911 - INFO - Training completed!
+2025-07-15 20:04:06,911 - INFO - Best validation AUC: 0.0000
+2025-07-15 20:04:06,911 - INFO - Final test AUC: 0.6924

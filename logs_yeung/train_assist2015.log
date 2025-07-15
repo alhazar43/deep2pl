@@ -1,0 +1,27 @@
+2025-07-15 20:22:46,789 - INFO - === Training Deep-IRT ===
+2025-07-15 20:22:46,789 - INFO - Dataset: assist2015
+2025-07-15 20:22:46,789 - INFO - Data style: yeung
+2025-07-15 20:22:46,789 - INFO - Fold: 0
+2025-07-15 20:22:46,789 - INFO - Epochs: 5
+2025-07-15 20:22:46,789 - INFO - Batch size: 32
+2025-07-15 20:22:46,789 - INFO - Learning rate: 0.001
+2025-07-15 20:22:46,885 - INFO - Using device: cuda
+2025-07-15 20:22:46,885 - INFO - Loading assist2015 dataset...
+2025-07-15 20:22:47,292 - INFO - Data: 11158/2777/5905 | Model: 155,902 params | Per-KC: False
+2025-07-15 20:22:47,836 - INFO - Starting training...
+2025-07-15 20:25:06,971 - INFO - === Training Deep-IRT ===
+2025-07-15 20:25:06,971 - INFO - Dataset: assist2015
+2025-07-15 20:25:06,972 - INFO - Data style: yeung
+2025-07-15 20:25:06,972 - INFO - Fold: 0
+2025-07-15 20:25:06,972 - INFO - Epochs: 3
+2025-07-15 20:25:06,972 - INFO - Batch size: 32
+2025-07-15 20:25:06,972 - INFO - Learning rate: 0.001
+2025-07-15 20:25:07,128 - INFO - Using device: cuda
+2025-07-15 20:25:07,129 - INFO - Loading assist2015 dataset...
+2025-07-15 20:25:07,531 - INFO - Data: 11158/2777/5905 | Model: 155,902 params | Per-KC: False
+2025-07-15 20:25:08,093 - INFO - Starting training...
+2025-07-15 20:26:39,417 - INFO - Final evaluation on test set...
+2025-07-15 20:26:43,945 - INFO - Test: Loss=0.2649, AUC=0.9310, Acc=0.8763
+2025-07-15 20:26:43,954 - INFO - Training completed!
+2025-07-15 20:26:43,954 - INFO - Best validation AUC: 0.0000
+2025-07-15 20:26:43,954 - INFO - Final test AUC: 0.9310

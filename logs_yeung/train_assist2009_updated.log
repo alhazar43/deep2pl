@@ -1,0 +1,64 @@
+2025-07-15 20:18:53,492 - INFO - === Training Deep-IRT ===
+2025-07-15 20:18:53,492 - INFO - Dataset: assist2009_updated
+2025-07-15 20:18:53,492 - INFO - Data style: yeung
+2025-07-15 20:18:53,492 - INFO - Fold: 0
+2025-07-15 20:18:53,492 - INFO - Epochs: 20
+2025-07-15 20:18:53,492 - INFO - Batch size: 32
+2025-07-15 20:18:53,492 - INFO - Learning rate: 0.001
+2025-07-15 20:18:53,651 - INFO - Using device: cuda
+2025-07-15 20:18:53,652 - INFO - Loading assist2009_updated dataset...
+2025-07-15 20:18:53,937 - INFO - Data: 2331/590/1230 | Model: 160,852 params | Per-KC: False
+2025-07-15 20:18:54,515 - INFO - Starting training...
+2025-07-15 20:19:27,011 - INFO - Epoch 5: Train=0.3241, Valid=0.3296, AUC=0.9059
+2025-07-15 20:20:00,315 - INFO - Epoch 10: Train=0.3221, Valid=0.3282, AUC=0.9059
+2025-07-15 20:20:30,826 - INFO - Epoch 15: Train=0.3189, Valid=0.3269, AUC=0.9068
+2025-07-15 20:21:54,698 - INFO - === Training Deep-IRT ===
+2025-07-15 20:21:54,698 - INFO - Dataset: assist2009_updated
+2025-07-15 20:21:54,698 - INFO - Data style: yeung
+2025-07-15 20:21:54,698 - INFO - Fold: 0
+2025-07-15 20:21:54,698 - INFO - Epochs: 5
+2025-07-15 20:21:54,698 - INFO - Batch size: 32
+2025-07-15 20:21:54,698 - INFO - Learning rate: 0.001
+2025-07-15 20:21:54,983 - INFO - Using device: cuda
+2025-07-15 20:21:54,983 - INFO - Loading assist2009_updated dataset...
+2025-07-15 20:21:55,240 - INFO - Data: 2331/590/1230 | Model: 160,852 params | Per-KC: False
+2025-07-15 20:21:55,858 - INFO - Starting training...
+2025-07-15 20:22:27,161 - INFO - Epoch 5: Train=0.3241, Valid=0.3296, AUC=0.9059
+2025-07-15 20:22:27,479 - INFO - Final evaluation on test set...
+2025-07-15 20:22:28,389 - INFO - Test: Loss=0.3281, AUC=0.9079, Acc=0.8301
+2025-07-15 20:22:28,399 - INFO - Training completed!
+2025-07-15 20:22:28,399 - INFO - Best validation AUC: 0.9059
+2025-07-15 20:22:28,399 - INFO - Final test AUC: 0.9079
+2025-07-15 20:27:05,522 - INFO - === Training Deep-IRT ===
+2025-07-15 20:27:05,522 - INFO - Dataset: assist2009
+2025-07-15 20:27:05,522 - INFO - Data style: yeung
+2025-07-15 20:27:05,522 - INFO - Fold: 0
+2025-07-15 20:27:05,522 - INFO - Epochs: 3
+2025-07-15 20:27:05,522 - INFO - Batch size: 32
+2025-07-15 20:27:05,522 - INFO - Learning rate: 0.001
+2025-07-15 20:27:05,652 - INFO - Using device: cuda
+2025-07-15 20:27:05,653 - INFO - Loading assist2009_updated dataset...
+2025-07-15 20:27:05,890 - INFO - Data: 2331/590/1230 | Model: 155,902 params | Per-KC: False
+2025-07-15 20:27:06,509 - INFO - Starting training...
+2025-07-15 20:27:25,318 - INFO - Final evaluation on test set...
+2025-07-15 20:27:26,220 - INFO - Test: Loss=0.3268, AUC=0.9087, Acc=0.8319
+2025-07-15 20:27:26,232 - INFO - Training completed!
+2025-07-15 20:27:26,232 - INFO - Best validation AUC: 0.0000
+2025-07-15 20:27:26,232 - INFO - Final test AUC: 0.9087
+2025-07-15 20:46:25,622 - INFO - === Training Deep-IRT ===
+2025-07-15 20:46:25,624 - INFO - Dataset: fsaif1tof3
+2025-07-15 20:46:25,624 - INFO - Data style: yeung
+2025-07-15 20:46:25,624 - INFO - Fold: 0
+2025-07-15 20:46:25,624 - INFO - Epochs: 5
+2025-07-15 20:46:25,624 - INFO - Batch size: 32
+2025-07-15 20:46:25,624 - INFO - Learning rate: 0.001
+2025-07-15 20:46:25,798 - INFO - Using device: cuda
+2025-07-15 20:46:25,801 - INFO - Loading assist2009_updated dataset...
+2025-07-15 20:46:26,072 - INFO - Data: 2331/590/1230 | Model: 155,902 params | Per-KC: False
+2025-07-15 20:46:27,089 - INFO - Starting training...
+2025-07-15 20:46:59,417 - INFO - Epoch 5: Train=0.3206, Valid=0.3271, AUC=0.9073
+2025-07-15 20:46:59,436 - INFO - Final evaluation on test set...
+2025-07-15 20:47:00,411 - INFO - Test: Loss=0.3251, AUC=0.9087, Acc=0.8311
+2025-07-15 20:47:00,419 - INFO - Training completed!
+2025-07-15 20:47:00,419 - INFO - Best validation AUC: 0.9073
+2025-07-15 20:47:00,419 - INFO - Final test AUC: 0.9087
