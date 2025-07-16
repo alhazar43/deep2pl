@@ -60,6 +60,7 @@ def load_model(checkpoint_path, config):
         qa_embed_dim=config['qa_embed_dim'],
         ability_scale=config['ability_scale'],
         use_discrimination=config['use_discrimination'],
+        discrimination_type=config.get('discrimination_type', 'static'),
         dropout_rate=config['dropout_rate'],
         q_matrix_path=config.get('q_matrix_path'),
         skill_mapping_path=config.get('skill_mapping_path')
@@ -88,6 +89,7 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
     global_data = {
         'student_abilities': [],
         'item_difficulties': [],
+        'item_discriminations': [],
         'student_ids': [],
         'timesteps': [],
         'question_ids': []
@@ -107,7 +109,7 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                 break
                 
             q_data, qa_data = batch['q_data'], batch['qa_data']
-            _, student_abilities, item_difficulties, _, kc_info = model(q_data, qa_data)
+            _, student_abilities, item_difficulties, item_discriminations, _, kc_info = model(q_data, qa_data)
             
             batch_size, seq_len = q_data.shape
             if max_timesteps is not None:
@@ -119,6 +121,11 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                     if q_data[student_idx, t].item() > 0:
                         global_data['student_abilities'].append(student_abilities[student_idx, t].item())
                         global_data['item_difficulties'].append(item_difficulties[student_idx, t].item())
+                        # Add discrimination data (will be None if not using discrimination)
+                        if item_discriminations is not None:
+                            global_data['item_discriminations'].append(item_discriminations[student_idx, t].item())
+                        else:
+                            global_data['item_discriminations'].append(None)
                         global_data['student_ids'].append(batch_idx * batch_size + student_idx)
                         global_data['timesteps'].append(t)
                         global_data['question_ids'].append(q_data[student_idx, t].item())
@@ -244,6 +251,43 @@ def plot_beta_distribution(data, save_path=None):
     plt.axvline(mean_beta, color='red', linestyle='--', label=f'Mean: {mean_beta:.3f}')
     plt.axvline(mean_beta + std_beta, color='orange', linestyle='--', alpha=0.7, label=f'±1 STD: {std_beta:.3f}')
     plt.axvline(mean_beta - std_beta, color='orange', linestyle='--', alpha=0.7)
+    plt.legend()
+    
+    plt.tight_layout()
+    
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+
+def plot_discrimination_distribution(data, save_path=None):
+    """
+    Create item discrimination (alpha) distribution visualization.
+    
+    Parameters:
+        data (dict): Dictionary containing discrimination parameters
+        save_path (str, optional): Path to save the visualization
+    """
+    # Filter out None values (when discrimination is not used)
+    discriminations = [d for d in data['item_discriminations'] if d is not None]
+    
+    if not discriminations:
+        print("No discrimination data available - model not using discrimination")
+        return
+    
+    plt.figure(figsize=(10, 6))
+    
+    plt.hist(discriminations, bins=50, alpha=0.7, edgecolor='black', color='purple')
+    plt.xlabel('Item Discrimination (α)')
+    plt.ylabel('Frequency')
+    plt.title('Distribution of Item Discriminations (α)\nDeep-IRT Model (2PL)')
+    plt.grid(True, alpha=0.3)
+    
+    mean_alpha = np.mean(discriminations)
+    std_alpha = np.std(discriminations)
+    plt.axvline(mean_alpha, color='red', linestyle='--', label=f'Mean: {mean_alpha:.3f}')
+    plt.axvline(mean_alpha + std_alpha, color='orange', linestyle='--', alpha=0.7, label=f'±1 STD: {std_alpha:.3f}')
+    plt.axvline(mean_alpha - std_alpha, color='orange', linestyle='--', alpha=0.7)
     plt.legend()
     
     plt.tight_layout()
@@ -447,6 +491,12 @@ def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None,
         beta_path = os.path.join(output_dir, "beta_distribution.png")
         plot_beta_distribution(global_data, beta_path)
         created_files.append("beta_distribution.png")
+        
+        # Generate discrimination distribution plot if discrimination is used
+        if any(d is not None for d in global_data['item_discriminations']):
+            discrimination_path = os.path.join(output_dir, "discrimination_distribution.png")
+            plot_discrimination_distribution(global_data, discrimination_path)
+            created_files.append("discrimination_distribution.png")
     
     print(f"Created {len(created_files)} visualizations:")
     for file in created_files:
@@ -539,6 +589,12 @@ def main():
         beta_path = os.path.join(args.output_dir, "beta_distribution.png")
         plot_beta_distribution(global_data, beta_path)
         created_files.append("beta_distribution.png")
+        
+        # Generate discrimination distribution plot if discrimination is used
+        if any(d is not None for d in global_data['item_discriminations']):
+            discrimination_path = os.path.join(args.output_dir, "discrimination_distribution.png")
+            plot_discrimination_distribution(global_data, discrimination_path)
+            created_files.append("discrimination_distribution.png")
     
     # Generate per-knowledge component visualizations
     if model.per_kc_mode and per_kc_data['all_kc_thetas_list']:

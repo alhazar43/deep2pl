@@ -23,19 +23,99 @@ import csv
 from .memory import DKVMN
 
 
+class ItemDiscriminationStaticNetwork(nn.Module):
+    """
+    Neural network to estimate item discrimination from question and question-answer embeddings.
+    This follows the traditional IRT approach where discrimination is an item property.
+    """
+    
+    def __init__(self, q_embed_dim, qa_embed_dim, hidden_dim=None, output_dim=1):
+        super(ItemDiscriminationStaticNetwork, self).__init__()
+        input_dim = q_embed_dim + qa_embed_dim
+        if hidden_dim is None:
+            hidden_dim = input_dim
+        
+        self.network = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, output_dim),
+            nn.Softplus()  # Ensure positive discrimination
+        )
+        
+        self._init_weights()
+    
+    def _init_weights(self):
+        for module in self.network:
+            if isinstance(module, nn.Linear):
+                nn.init.kaiming_normal_(module.weight)
+                nn.init.constant_(module.bias, 0)
+    
+    def forward(self, question_embedding, qa_embedding):
+        """
+        Args:
+            question_embedding: Shape (batch_size, q_embed_dim)
+            qa_embedding: Shape (batch_size, qa_embed_dim)
+            
+        Returns:
+            item_discrimination: Shape (batch_size, output_dim)
+        """
+        combined_input = torch.cat([question_embedding, qa_embedding], dim=1)
+        return self.network(combined_input)
+
+
+class ItemDiscriminationDynamicNetwork(nn.Module):
+    """
+    Neural network to estimate item discrimination from summary vector.
+    This allows discrimination to vary based on student's knowledge state.
+    """
+    
+    def __init__(self, input_dim, hidden_dim=None, output_dim=1):
+        super(ItemDiscriminationDynamicNetwork, self).__init__()
+        if hidden_dim is None:
+            hidden_dim = input_dim
+        
+        self.network = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, output_dim),
+            nn.Softplus()  # Ensure positive discrimination
+        )
+        
+        self._init_weights()
+    
+    def _init_weights(self):
+        for module in self.network:
+            if isinstance(module, nn.Linear):
+                nn.init.kaiming_normal_(module.weight)
+                nn.init.constant_(module.bias, 0)
+    
+    def forward(self, summary_vector):
+        """
+        Args:
+            summary_vector: Shape (batch_size, input_dim)
+            
+        Returns:
+            item_discrimination: Shape (batch_size, output_dim)
+        """
+        return self.network(summary_vector)
+
+
 class DeepIRTModel(nn.Module):
     """
-    Deep Item Response Theory model with optional continuous per-knowledge component tracking.
+    Deep Item Response Theory model with optional continuous per-knowledge component tracking
+    and item discrimination parameter estimation.
     
     This model extends the standard Deep-IRT architecture to support continuous evolution
     of knowledge component states when Q-matrix information is available. The model
     automatically switches between global and per-KC modes based on data availability.
+    
+    Additionally supports 2PL IRT with discrimination parameter estimation.
     """
     
     def __init__(self, n_questions, memory_size=50, key_memory_state_dim=50, 
                  value_memory_state_dim=200, summary_vector_dim=50, 
                  q_embed_dim=None, qa_embed_dim=None, ability_scale=3.0, 
-                 use_discrimination=False, dropout_rate=0.0, 
+                 use_discrimination=False, discrimination_type="static", dropout_rate=0.0, 
                  q_matrix_path=None, skill_mapping_path=None):
         """
         Initialize the Deep Item Response Theory model.
@@ -50,6 +130,7 @@ class DeepIRTModel(nn.Module):
             qa_embed_dim (int, optional): Question-answer embedding dimension
             ability_scale (float): Scaling factor for student ability in IRT
             use_discrimination (bool): Whether to use discrimination parameters
+            discrimination_type (str): Type of discrimination ("static", "dynamic", or "both")
             dropout_rate (float): Dropout probability for regularization
             q_matrix_path (str, optional): Path to Q-matrix file for per-KC tracking
             skill_mapping_path (str, optional): Path to skill mapping file
@@ -71,6 +152,7 @@ class DeepIRTModel(nn.Module):
         self.qa_embed_dim = qa_embed_dim
         self.ability_scale = ability_scale
         self.use_discrimination = use_discrimination
+        self.discrimination_type = discrimination_type
         self.dropout_rate = dropout_rate
         
         # Initialize knowledge component configuration and Q-matrix integration
@@ -96,6 +178,27 @@ class DeepIRTModel(nn.Module):
             nn.Tanh(),
             nn.Dropout(dropout_rate)
         )
+        
+        # Initialize discrimination networks
+        self.item_discrimination_static_net = None
+        self.item_discrimination_dynamic_net = None
+        
+        if use_discrimination:
+            if discrimination_type == "static":
+                self.item_discrimination_static_net = ItemDiscriminationStaticNetwork(
+                    q_embed_dim, qa_embed_dim
+                )
+            elif discrimination_type == "dynamic":
+                self.item_discrimination_dynamic_net = ItemDiscriminationDynamicNetwork(
+                    summary_vector_dim
+                )
+            elif discrimination_type == "both":
+                self.item_discrimination_static_net = ItemDiscriminationStaticNetwork(
+                    q_embed_dim, qa_embed_dim
+                )
+                self.item_discrimination_dynamic_net = ItemDiscriminationDynamicNetwork(
+                    summary_vector_dim
+                )
         
         if self.per_kc_mode:
             # Initialize per-knowledge component continuous tracking components
@@ -148,12 +251,8 @@ class DeepIRTModel(nn.Module):
                 nn.Tanh(),
                 nn.Linear(summary_vector_dim, 1)
             )
-        
-        # Initialize Item Response Theory prediction components
-        if use_discrimination:
-            self.discrimination = nn.Parameter(torch.ones(1))
-        else:
-            self.discrimination = None
+
+        # Note: Discrimination is now handled by the discrimination networks above
         
         # Initialize learnable initial value memory for DKVMN
         self.init_value_memory = nn.Parameter(
@@ -304,19 +403,20 @@ class DeepIRTModel(nn.Module):
         
         return kc_encoding
     
-    def irt_prediction(self, student_ability, item_difficulty):
+    def irt_prediction(self, student_ability, item_difficulty, discrimination=None):
         """
         Compute Item Response Theory prediction using the logistic model.
         
         Parameters:
             student_ability (tensor): Student ability parameters (theta)
             item_difficulty (tensor): Item difficulty parameters (beta)
+            discrimination (tensor, optional): Item discrimination parameters (alpha)
             
         Returns:
             tuple: (prediction, z_value) where prediction is probability and z_value is logit
         """
-        if self.use_discrimination and self.discrimination is not None:
-            z_value = self.discrimination * (self.ability_scale * student_ability - item_difficulty)
+        if self.use_discrimination and discrimination is not None:
+            z_value = discrimination * (self.ability_scale * student_ability - item_difficulty)
         else:
             z_value = self.ability_scale * student_ability - item_difficulty
         
@@ -331,6 +431,7 @@ class DeepIRTModel(nn.Module):
             predictions: Shape (batch_size, seq_len)
             student_abilities: Shape (batch_size, seq_len) or (batch_size, seq_len, n_kcs) for per-KC
             item_difficulties: Shape (batch_size, seq_len)
+            item_discriminations: Shape (batch_size, seq_len) or None
             z_values: Shape (batch_size, seq_len)
             kc_info: Dict with KC information (if per_kc_mode)
         """
@@ -358,6 +459,7 @@ class DeepIRTModel(nn.Module):
         predictions = []
         student_abilities = []
         item_difficulties = []
+        item_discriminations = []
         z_values = []
         kc_info = {'all_kc_thetas': []} if self.per_kc_mode else {}
         
@@ -431,13 +533,27 @@ class DeepIRTModel(nn.Module):
                 student_ability = self.student_ability_net(summary_vector)
                 item_difficulty = self.item_difficulty_net(q_t)
             
+            # Compute item discrimination if enabled
+            item_discrimination = None
+            if self.use_discrimination:
+                if self.discrimination_type == "static":
+                    item_discrimination = self.item_discrimination_static_net(q_t, qa_t)
+                elif self.discrimination_type == "dynamic":
+                    item_discrimination = self.item_discrimination_dynamic_net(summary_vector)
+                elif self.discrimination_type == "both":
+                    # Average both discriminations
+                    static_disc = self.item_discrimination_static_net(q_t, qa_t)
+                    dynamic_disc = self.item_discrimination_dynamic_net(summary_vector)
+                    item_discrimination = (static_disc + dynamic_disc) / 2.0
+            
             # IRT prediction
-            prediction, z_value = self.irt_prediction(student_ability, item_difficulty)
+            prediction, z_value = self.irt_prediction(student_ability, item_difficulty, item_discrimination)
             
             # Store results
             predictions.append(prediction)
             student_abilities.append(student_ability)
             item_difficulties.append(item_difficulty)
+            item_discriminations.append(item_discrimination)
             z_values.append(z_value)
             
             # Update memory
@@ -449,10 +565,16 @@ class DeepIRTModel(nn.Module):
         item_difficulties = torch.stack(item_difficulties, dim=1).squeeze(-1)
         z_values = torch.stack(z_values, dim=1).squeeze(-1)
         
+        # Handle discriminations (might be None)
+        if self.use_discrimination:
+            item_discriminations = torch.stack(item_discriminations, dim=1).squeeze(-1)
+        else:
+            item_discriminations = None
+        
         if self.per_kc_mode:
             kc_info['all_kc_thetas'] = torch.stack(kc_info['all_kc_thetas'], dim=1)  # (batch_size, seq_len, n_kcs)
         
-        return predictions, student_abilities, item_difficulties, z_values, kc_info
+        return predictions, student_abilities, item_difficulties, item_discriminations, z_values, kc_info
     
     def compute_loss(self, predictions, targets, target_mask=None):
         """Compute binary cross-entropy loss."""

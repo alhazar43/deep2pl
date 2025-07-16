@@ -127,7 +127,8 @@ def get_dataset_config(dataset_name, data_style, fold_idx=0):
     config.q_embed_dim = 50
     config.qa_embed_dim = 200
     config.ability_scale = 3.0
-    config.use_discrimination = False
+    config.use_discrimination = True
+    config.discrimination_type = "static"  # "static", "dynamic", or "both"
     config.dropout_rate = 0.1
     
     # Training configuration
@@ -159,7 +160,7 @@ def evaluate_model(model, data_loader, device, desc="Evaluating"):
             qa_data = batch['qa_data'].to(device)
             targets = batch['target'].to(device)
             
-            predictions, student_abilities, item_difficulties, z_values, kc_info = model(q_data, qa_data)
+            predictions, student_abilities, item_difficulties, item_discriminations, z_values, kc_info = model(q_data, qa_data)
             
             loss = model.compute_loss(predictions, targets)
             total_loss += loss.item()
@@ -241,6 +242,7 @@ def train_model(config, logger):
         qa_embed_dim=config.qa_embed_dim,
         ability_scale=config.ability_scale,
         use_discrimination=config.use_discrimination,
+        discrimination_type=config.discrimination_type,
         dropout_rate=config.dropout_rate,
         q_matrix_path=getattr(config, 'q_matrix_path', None),
         skill_mapping_path=getattr(config, 'skill_mapping_path', None)
@@ -272,7 +274,7 @@ def train_model(config, logger):
             qa_data = batch['qa_data'].to(device)
             targets = batch['target'].to(device)
             
-            predictions, student_abilities, item_difficulties, z_values, kc_info = model(q_data, qa_data)
+            predictions, student_abilities, item_difficulties, item_discriminations, z_values, kc_info = model(q_data, qa_data)
             loss = model.compute_loss(predictions, targets)
             
             optimizer.zero_grad()
@@ -343,6 +345,11 @@ def main():
                         help='Batch size (overrides default)')
     parser.add_argument('--learning_rate', type=float, default=None,
                         help='Learning rate (overrides default)')
+    parser.add_argument('--use_discrimination', action='store_true',
+                        help='Enable discrimination parameters (2PL model)')
+    parser.add_argument('--discrimination_type', type=str, default='static',
+                        choices=['static', 'dynamic', 'both'],
+                        help='Type of discrimination estimation')
     
     args = parser.parse_args()
     
@@ -358,6 +365,9 @@ def main():
         config.batch_size = args.batch_size
     if args.learning_rate is not None:
         config.learning_rate = args.learning_rate
+    if args.use_discrimination:
+        config.use_discrimination = True
+        config.discrimination_type = args.discrimination_type
     
     logger = setup_logging(config.log_dir, config.dataset_name)
     

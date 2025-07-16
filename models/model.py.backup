@@ -74,6 +74,83 @@ class ItemDifficultyNetwork(nn.Module):
         return self.network(question_embedding)
 
 
+class ItemDiscriminationStaticNetwork(nn.Module):
+    """
+    Neural network to estimate item discrimination from question and question-answer embeddings.
+    This follows the traditional IRT approach where discrimination is an item property.
+    """
+    
+    def __init__(self, q_embed_dim, qa_embed_dim, hidden_dim=None, output_dim=1):
+        super(ItemDiscriminationStaticNetwork, self).__init__()
+        input_dim = q_embed_dim + qa_embed_dim
+        if hidden_dim is None:
+            hidden_dim = input_dim
+        
+        self.network = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, output_dim),
+            nn.Softplus()  # Ensure positive discrimination
+        )
+        
+        self._init_weights()
+    
+    def _init_weights(self):
+        for module in self.network:
+            if isinstance(module, nn.Linear):
+                nn.init.kaiming_normal_(module.weight)
+                nn.init.constant_(module.bias, 0)
+    
+    def forward(self, question_embedding, qa_embedding):
+        """
+        Args:
+            question_embedding: Shape (batch_size, q_embed_dim)
+            qa_embedding: Shape (batch_size, qa_embed_dim)
+            
+        Returns:
+            item_discrimination: Shape (batch_size, output_dim)
+        """
+        combined_input = torch.cat([question_embedding, qa_embedding], dim=1)
+        return self.network(combined_input)
+
+
+class ItemDiscriminationDynamicNetwork(nn.Module):
+    """
+    Neural network to estimate item discrimination from summary vector.
+    This allows discrimination to vary based on student's knowledge state.
+    """
+    
+    def __init__(self, input_dim, hidden_dim=None, output_dim=1):
+        super(ItemDiscriminationDynamicNetwork, self).__init__()
+        if hidden_dim is None:
+            hidden_dim = input_dim
+        
+        self.network = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, output_dim),
+            nn.Softplus()  # Ensure positive discrimination
+        )
+        
+        self._init_weights()
+    
+    def _init_weights(self):
+        for module in self.network:
+            if isinstance(module, nn.Linear):
+                nn.init.kaiming_normal_(module.weight)
+                nn.init.constant_(module.bias, 0)
+    
+    def forward(self, summary_vector):
+        """
+        Args:
+            summary_vector: Shape (batch_size, input_dim)
+            
+        Returns:
+            item_discrimination: Shape (batch_size, output_dim)
+        """
+        return self.network(summary_vector)
+
+
 class IRTPredictor(nn.Module):
     """
     Item Response Theory predictor for 1PL or 2PL models.
@@ -123,7 +200,7 @@ class DeepIRTModel(nn.Module):
                  value_memory_state_dim, summary_vector_dim, 
                  q_embed_dim=None, qa_embed_dim=None, 
                  ability_scale=3.0, use_discrimination=False,
-                 dropout_rate=0.0):
+                 discrimination_type="static", dropout_rate=0.0):
         super(DeepIRTModel, self).__init__()
         
         # Set embedding dimensions
@@ -139,6 +216,8 @@ class DeepIRTModel(nn.Module):
         self.summary_vector_dim = summary_vector_dim
         self.q_embed_dim = q_embed_dim
         self.qa_embed_dim = qa_embed_dim
+        self.use_discrimination = use_discrimination
+        self.discrimination_type = discrimination_type
         
         # Embedding layers
         self.q_embed = nn.Embedding(n_questions + 1, q_embed_dim, padding_idx=0)
@@ -163,9 +242,31 @@ class DeepIRTModel(nn.Module):
         self.student_ability_net = StudentAbilityNetwork(summary_vector_dim)
         self.item_difficulty_net = ItemDifficultyNetwork(q_embed_dim)
         
+        # Item discrimination networks
+        self.item_discrimination_static_net = None
+        self.item_discrimination_dynamic_net = None
+        
+        if use_discrimination:
+            if discrimination_type == "static":
+                self.item_discrimination_static_net = ItemDiscriminationStaticNetwork(
+                    q_embed_dim, qa_embed_dim
+                )
+            elif discrimination_type == "dynamic":
+                self.item_discrimination_dynamic_net = ItemDiscriminationDynamicNetwork(
+                    summary_vector_dim
+                )
+            elif discrimination_type == "both":
+                self.item_discrimination_static_net = ItemDiscriminationStaticNetwork(
+                    q_embed_dim, qa_embed_dim
+                )
+                self.item_discrimination_dynamic_net = ItemDiscriminationDynamicNetwork(
+                    summary_vector_dim
+                )
+        
         # IRT predictor
+        model_type = "2PL" if use_discrimination else "1PL"
         self.irt_predictor = IRTPredictor(
-            model_type="1PL", 
+            model_type=model_type, 
             use_discrimination=use_discrimination,
             ability_scale=ability_scale
         )
@@ -204,6 +305,7 @@ class DeepIRTModel(nn.Module):
             predictions: Shape (batch_size, seq_len)
             student_abilities: Shape (batch_size, seq_len)
             item_difficulties: Shape (batch_size, seq_len)
+            item_discriminations: Shape (batch_size, seq_len) or None
             z_values: Shape (batch_size, seq_len)
         """
         batch_size, seq_len = q_data.shape
@@ -223,6 +325,7 @@ class DeepIRTModel(nn.Module):
         predictions = []
         student_abilities = []
         item_difficulties = []
+        item_discriminations = []
         z_values = []
         
         for t in range(seq_len):
@@ -242,13 +345,27 @@ class DeepIRTModel(nn.Module):
             student_ability = self.student_ability_net(summary_vector)
             item_difficulty = self.item_difficulty_net(q_t)
             
+            # Compute item discrimination if enabled
+            item_discrimination = None
+            if self.use_discrimination:
+                if self.discrimination_type == "static":
+                    item_discrimination = self.item_discrimination_static_net(q_t, qa_t)
+                elif self.discrimination_type == "dynamic":
+                    item_discrimination = self.item_discrimination_dynamic_net(summary_vector)
+                elif self.discrimination_type == "both":
+                    # Average both discriminations
+                    static_disc = self.item_discrimination_static_net(q_t, qa_t)
+                    dynamic_disc = self.item_discrimination_dynamic_net(summary_vector)
+                    item_discrimination = (static_disc + dynamic_disc) / 2.0
+            
             # IRT prediction
-            prediction, z_value = self.irt_predictor(student_ability, item_difficulty)
+            prediction, z_value = self.irt_predictor(student_ability, item_difficulty, item_discrimination)
             
             # Store results
             predictions.append(prediction)
             student_abilities.append(student_ability)
             item_difficulties.append(item_difficulty)
+            item_discriminations.append(item_discrimination)
             z_values.append(z_value)
             
             # Update memory
@@ -260,7 +377,13 @@ class DeepIRTModel(nn.Module):
         item_difficulties = torch.stack(item_difficulties, dim=1).squeeze(-1)
         z_values = torch.stack(z_values, dim=1).squeeze(-1)
         
-        return predictions, student_abilities, item_difficulties, z_values
+        # Handle discriminations (might be None)
+        if self.use_discrimination:
+            item_discriminations = torch.stack(item_discriminations, dim=1).squeeze(-1)
+        else:
+            item_discriminations = None
+        
+        return predictions, student_abilities, item_difficulties, item_discriminations, z_values
     
     def compute_loss(self, predictions, targets, target_mask=None):
         """

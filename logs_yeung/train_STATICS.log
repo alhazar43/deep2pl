@@ -236,3 +236,14 @@
 2025-07-16 00:15:28,313 - INFO - Loading STATICS dataset...
 2025-07-16 00:15:28,698 - INFO - Data: 179/50/104 | Model: 1,511,301 params | Per-KC: True (98 KCs)
 2025-07-16 00:15:29,666 - INFO - Starting training...
+2025-07-16 14:19:35,242 - INFO - === Training Deep-IRT ===
+2025-07-16 14:19:35,244 - INFO - Dataset: STATICS
+2025-07-16 14:19:35,244 - INFO - Data style: yeung
+2025-07-16 14:19:35,244 - INFO - Fold: 0
+2025-07-16 14:19:35,244 - INFO - Epochs: 5
+2025-07-16 14:19:35,244 - INFO - Batch size: 16
+2025-07-16 14:19:35,244 - INFO - Learning rate: 0.001
+2025-07-16 14:19:35,244 - INFO - Using device: cpu
+2025-07-16 14:19:35,245 - INFO - Loading STATICS dataset...
+2025-07-16 14:19:35,462 - INFO - Data: 179/50/104 | Model: 1,574,302 params | Per-KC: True (98 KCs)
+2025-07-16 14:19:36,785 - INFO - Starting training...
