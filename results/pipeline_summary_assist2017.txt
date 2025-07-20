@@ -1,12 +1,12 @@
 Deep-2PL Pipeline Summary
 ========================
 Dataset: assist2017
-Date: Sun Jul 20 20:44:41 CEST 2025
+Date: Mon Jul 21 01:24:00 CEST 2025
 Epochs: 1
 Mode: Single fold (0)
 
 Models Trained:
-  - best_model_assist2017_fold0.pth
+  - final_model_assist2017_fold0.pth
 
 Results Location:
   - Training metrics: results/train/

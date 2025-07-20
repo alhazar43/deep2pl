@@ -21,33 +21,43 @@ class DeepIRTModel(nn.Module):
                  value_dim=200, final_fc_dim=50, dropout_rate=0.0,
                  # Legacy parameters for backward compatibility
                  summary_dim=None, q_embed_dim=None, qa_embed_dim=None,
-                 ability_scale=None, use_discrimination=None, 
+                 ability_scale=3.0, use_discrimination=True, 
                  q_matrix_path=None, skill_mapping_path=None):
         """
-        Initialize simplified Deep-IRT model.
+        Initialize Deep-IRT model with per-KC support.
         
         Args:
             n_questions: Number of unique questions
             memory_size: Size of memory matrix
-            key_dim: Dimension of key embeddings (usually same as q_embed_dim)
-            value_dim: Dimension of value embeddings (usually same as qa_embed_dim)  
+            key_dim: Dimension of key embeddings
+            value_dim: Dimension of value embeddings
             final_fc_dim: Hidden dimension for final prediction network
             dropout_rate: Dropout rate
-            
-            # Legacy parameters (ignored but kept for compatibility):
-            summary_dim: Ignored, use final_fc_dim instead
-            q_embed_dim: Ignored, use key_dim instead
-            qa_embed_dim: Ignored, use value_dim instead
-            ability_scale: Ignored (simplified model)
-            use_discrimination: Ignored (simplified model)
-            q_matrix_path: Ignored (per-KC tracking removed)
-            skill_mapping_path: Ignored (per-KC tracking removed)
+            ability_scale: IRT ability scaling factor
+            use_discrimination: Whether to use discrimination parameters
+            q_matrix_path: Path to Q-matrix file (enables per-KC mode)
+            skill_mapping_path: Path to skill mapping file
         """
         super(DeepIRTModel, self).__init__()
         
         # Handle legacy parameters for backward compatibility
         if summary_dim is not None:
             final_fc_dim = summary_dim
+        
+        # Store core parameters
+        self.n_questions = n_questions
+        self.memory_size = memory_size
+        self.key_dim = key_dim
+        self.value_dim = value_dim
+        self.final_fc_dim = final_fc_dim
+        self.ability_scale = ability_scale
+        self.use_discrimination = use_discrimination
+        self.dropout_rate = dropout_rate
+        
+        # Initialize per-KC mode and Q-matrix
+        self.per_kc_mode, self.q_to_kc, self.kc_names, self.n_kcs = self._load_kc_info(
+            q_matrix_path, skill_mapping_path
+        )
         if q_embed_dim is not None:
             key_dim = q_embed_dim  
         if qa_embed_dim is not None:
@@ -60,11 +70,7 @@ class DeepIRTModel(nn.Module):
         self.final_fc_dim = final_fc_dim
         self.dropout_rate = dropout_rate
         
-        # Legacy attributes for backward compatibility
-        self.per_kc_mode = False  # Simplified model doesn't use per-KC tracking
-        self.q_to_kc = {}
-        self.kc_names = {}
-        self.n_kcs = 0
+        # Legacy attributes for backward compatibility (initialized by _load_kc_info above)
         
         # Embedding layers - matching reference implementations
         self.q_embed = nn.Embedding(n_questions + 1, key_dim, padding_idx=0)
@@ -198,6 +204,103 @@ class DeepIRTModel(nn.Module):
         # Binary cross-entropy loss
         loss = F.binary_cross_entropy(masked_predictions, masked_targets)
         return loss
+
+    def _load_kc_info(self, q_matrix_path, skill_mapping_path):
+        """
+        Load Q-matrix and skill mapping information for per-KC mode configuration.
+        
+        Parameters:
+            q_matrix_path (str): Path to the Q-matrix file (CSV or qid_sid format)
+            skill_mapping_path (str): Path to the skill mapping file
+            
+        Returns:
+            tuple: (per_kc_mode, q_to_kc, kc_names, n_kcs)
+        """
+        if q_matrix_path is None or not os.path.exists(q_matrix_path):
+            # Q-matrix not available, fall back to global tracking mode
+            return False, {}, {}, 0
+        
+        q_to_kc = {}
+        kc_names = {}
+        
+        try:
+            # Detect file format and parse accordingly
+            if q_matrix_path.endswith('.csv') and 'Qmatrix' in q_matrix_path:
+                # Multi-hot Q-matrix format (STATICS style)
+                with open(q_matrix_path, 'r') as f:
+                    for q_idx, line in enumerate(f, 1):
+                        kc_vector = [int(x) for x in line.strip().split(',')]
+                        kcs = [i for i, val in enumerate(kc_vector) if val == 1]
+                        q_to_kc[q_idx] = kcs if kcs else [0]  # Default to KC 0 if none
+                
+                n_kcs = len(kc_vector)
+                
+            elif 'qid_sid' in q_matrix_path or 'conceptname_question_id' in q_matrix_path:
+                # 1-to-1 mapping format (assist2015, assist2009_updated, fsaif1tof3)
+                max_qid = 0
+                max_kc = 0
+                
+                with open(q_matrix_path, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                            
+                        if 'conceptname_question_id' in q_matrix_path:
+                            # CSV format: concept_name,question_id
+                            parts = line.split(',')
+                            if len(parts) >= 2:
+                                kc_name = parts[0].strip()
+                                q_id = int(parts[1].strip())
+                                
+                                # Map concept name to KC index
+                                if kc_name not in kc_names:
+                                    kc_id = len(kc_names)
+                                    kc_names[kc_id] = kc_name
+                                else:
+                                    kc_id = next(k for k, v in kc_names.items() if v == kc_name)
+                                
+                                q_to_kc[q_id] = [kc_id]
+                                max_qid = max(max_qid, q_id)
+                                max_kc = max(max_kc, kc_id)
+                        else:
+                            # Tab-separated format: question_id\tskill_id
+                            parts = line.split('\t')
+                            if len(parts) >= 2:
+                                q_id = int(parts[0])
+                                kc_id = int(parts[1]) - 1  # Convert to 0-indexed
+                                q_to_kc[q_id] = [kc_id]
+                                max_qid = max(max_qid, q_id)
+                                max_kc = max(max_kc, kc_id)
+                
+                n_kcs = max_kc + 1
+                
+                # Load skill mapping if available
+                if skill_mapping_path and os.path.exists(skill_mapping_path):
+                    with open(skill_mapping_path, 'r') as f:
+                        for line in f:
+                            parts = line.strip().split('\t')
+                            if len(parts) >= 2:
+                                kc_id = int(parts[0]) - 1  # Convert to 0-indexed
+                                kc_name = parts[1]
+                                if 0 <= kc_id < n_kcs:
+                                    kc_names[kc_id] = kc_name
+                
+                # Assign default names for KCs without explicit names
+                for i in range(n_kcs):
+                    if i not in kc_names:
+                        kc_names[i] = f"KC_{i+1}"
+            
+            else:
+                print(f"Warning: Unknown Q-matrix format: {q_matrix_path}")
+                return False, {}, {}, 0
+            
+            print(f"Successfully loaded Q-matrix: {len(q_to_kc)} questions, {n_kcs} knowledge components")
+            return True, q_to_kc, kc_names, n_kcs
+            
+        except Exception as e:
+            print(f"Warning: Failed to load Q-matrix from {q_matrix_path}: {e}")
+            return False, {}, {}, 0
 
 
 class DKVMNModel(nn.Module):

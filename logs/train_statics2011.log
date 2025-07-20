@@ -1,15 +1,15 @@
-2025-07-20 15:47:18,522 - INFO - === Training Deep-IRT (Single Fold) ===
-2025-07-20 15:47:18,522 - INFO - Dataset: statics2011
-2025-07-20 15:47:18,522 - INFO - Fold: 0
-2025-07-20 15:47:18,522 - INFO - Epochs: 1
-2025-07-20 15:47:18,522 - INFO - Batch size: 8
-2025-07-20 15:47:18,522 - INFO - Learning rate: 0.001
-2025-07-20 15:47:18,627 - INFO - Using device: cuda
-2025-07-20 15:47:18,628 - INFO - Loading statics2011 dataset...
-2025-07-20 15:47:18,940 - INFO - Data: 213/54/66 | Model: 660,353 params | Per-KC: False
-2025-07-20 15:47:19,882 - INFO - Starting training...
-2025-07-20 15:47:25,006 - INFO - Final evaluation on test set...
-2025-07-20 15:47:25,443 - INFO - Test: Loss=0.3865, AUC=0.7232, Acc=0.8553
-2025-07-20 15:47:25,469 - INFO - Training completed!
-2025-07-20 15:47:25,469 - INFO - Best validation AUC: 0.0000
-2025-07-20 15:47:25,469 - INFO - Final test AUC: 0.7232
+2025-07-21 01:26:06,300 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 01:26:06,301 - INFO - Dataset: statics2011
+2025-07-21 01:26:06,301 - INFO - Fold: 0
+2025-07-21 01:26:06,301 - INFO - Epochs: 1
+2025-07-21 01:26:06,301 - INFO - Batch size: 32
+2025-07-21 01:26:06,301 - INFO - Learning rate: 0.001
+2025-07-21 01:26:06,412 - INFO - Using device: cuda
+2025-07-21 01:26:06,412 - INFO - Loading statics2011 dataset...
+2025-07-21 01:26:06,707 - INFO - Data: 213/54/66 | Model: 655,201 params | Per-KC: False
+2025-07-21 01:26:07,315 - INFO - Starting training...
+2025-07-21 01:26:08,351 - INFO - Final evaluation on test set...
+2025-07-21 01:26:08,434 - INFO - Test: Loss=0.5496, AUC=0.6411, Acc=0.8406
+2025-07-21 01:26:08,454 - INFO - Training completed!
+2025-07-21 01:26:08,454 - INFO - Best validation AUC: 0.0000
+2025-07-21 01:26:08,454 - INFO - Final test AUC: 0.6411

@@ -1,0 +1,22 @@
+Deep-2PL Pipeline Summary
+========================
+Dataset: assist2009_updated
+Date: Mon Jul 21 01:17:02 CEST 2025
+Epochs: 1
+Mode: Single fold (0)
+
+Models Trained:
+  - final_model_assist2009_updated_fold0.pth
+
+Results Location:
+  - Training metrics: results/train/
+  - Evaluation results: results/test/
+  - Plots: results/plots/
+  - Models: save_models/
+
+Dataset Information:
+Loading pre-split data from ./data/assist2009_updated/assist2009_updated_test.csv
+  - Questions: 70
+  - Q-matrix: Yes
+  - Format: Pre-split
+  - Mode: Per-KC

@@ -1,0 +1,10 @@
+dataset,auc,accuracy,loss,precision,recall,f1,file
+model_fsaif1tof3,0.9445320416076305,0.9064823348694316,0.16872704525788626,0,0,0,results/test/eval_final_model_fsaif1tof3_fold0_test.json
+model_assist2009,0.9011751068585533,0.8179205607476635,0.35356663940129457,0,0,0,results/test/eval_final_model_assist2009_fold0_test.json
+model_assist2015,0.9951273542220227,0.9861860266749379,0.0293749196064328,0,0,0,results/test/eval_final_model_assist2015_fold0_test.json
+model_assist2009_updated,0.9918918812319851,0.9786327913279133,0.05090332845560251,0,0,0,results/test/eval_final_model_assist2009_updated_fold0_test.json
+model_assist2017,0.6091882853831576,0.6293255131964809,0.6441376859491522,0,0,0,results/test/eval_final_model_assist2017_fold0_test.json
+model_synthetic,0.6938089219521764,0.6548,0.6119316387176513,0,0,0,results/test/eval_final_model_synthetic_fold0_test.json
+model_statics2011,0.6410884201753929,0.8406060606060606,0.5495660106341044,0,0,0,results/test/eval_final_model_statics2011_fold0_test.json
+model_kddcup2010,0.7535035371425018,0.7852416356877323,0.4774039142272052,0,0,0,results/test/eval_final_model_kddcup2010_fold0_test.json
+model_STATICS,0.9182669153337137,0.8893429487179487,0.27243348956108093,0,0,0,results/test/eval_final_model_STATICS_fold0_test.json

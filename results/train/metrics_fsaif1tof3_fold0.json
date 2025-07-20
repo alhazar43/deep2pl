@@ -1,6 +1,6 @@
 {
   "train_losses": [
-    0.19768914648077704
+    0.3728262633085251
   ],
   "valid_losses": [
     null
@@ -12,9 +12,9 @@
     null
   ],
   "best_valid_auc": 0.0,
-  "test_loss": 0.1423484057498475,
-  "test_auc": 0.9496181184335241,
-  "test_acc": 0.9112095620471642,
+  "test_loss": 0.16872704525788626,
+  "test_auc": 0.9445320416076305,
+  "test_acc": 0.9064823348694316,
   "config": {
     "n_questions": 1722,
     "memory_size": 50,
@@ -26,7 +26,7 @@
     "ability_scale": 3.0,
     "use_discrimination": true,
     "dropout_rate": 0.1,
-    "batch_size": 4,
+    "batch_size": 32,
     "seq_len": 700,
     "learning_rate": 0.001,
     "n_epochs": 1,

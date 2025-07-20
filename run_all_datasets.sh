@@ -60,23 +60,23 @@ print_section() {
 }
 
 print_success() {
-    echo -e "${GREEN}✓ $1${NC}"
+    echo -e "${GREEN}[SUCCESS] $1${NC}"
 }
 
 print_error() {
-    echo -e "${RED}✗ $1${NC}"
+    echo -e "${RED}[ERROR] $1${NC}"
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠ $1${NC}"
+    echo -e "${YELLOW}[WARNING] $1${NC}"
 }
 
 print_info() {
-    echo -e "${BLUE}ℹ $1${NC}"
+    echo -e "${BLUE}[INFO] $1${NC}"
 }
 
 print_dataset() {
-    echo -e "${PURPLE}📊 $1${NC}"
+    echo -e "${PURPLE}[DATASET] $1${NC}"
 }
 
 # Usage function
@@ -203,7 +203,7 @@ run_dataset_pipeline() {
     
     print_info "Command: $cmd"
     
-    # Run the pipeline
+    # Run the pipeline (including deep visualization)
     local log_file="logs/run_all_${dataset}_$(date +%Y%m%d_%H%M%S).log"
     
     if $cmd 2>&1 | tee "$log_file"; then
@@ -313,8 +313,8 @@ def main():
     best_auc = df.loc[df['auc'].idxmax()]
     worst_auc = df.loc[df['auc'].idxmin()]
     
-    print(f"\n🏆 Best AUC: {best_auc['dataset']} ({best_auc['auc']:.4f})")
-    print(f"📉 Worst AUC: {worst_auc['dataset']} ({worst_auc['auc']:.4f})")
+    print(f"\nBest AUC: {best_auc['dataset']} ({best_auc['auc']:.4f})")
+    print(f"Worst AUC: {worst_auc['dataset']} ({worst_auc['auc']:.4f})")
     
     # Save detailed results
     df.to_csv('results/comprehensive_comparison.csv', index=False)
@@ -457,14 +457,14 @@ fi
 print_header "Deep-2PL Comprehensive Pipeline for All Datasets"
 
 print_info "Configuration:"
-echo "  📊 Datasets: ${#FINAL_DATASETS[@]} (${FINAL_DATASETS[*]})"
-echo "  🔄 Epochs: $EPOCHS"
-echo "  📈 Mode: $(if [[ "$SINGLE_FOLD" == true ]]; then echo "Single fold ($FOLD_IDX)"; else echo "5-fold CV"; fi)"
+echo "  Datasets: ${#FINAL_DATASETS[@]} (${FINAL_DATASETS[*]})"
+echo "  Epochs: $EPOCHS"
+echo "  Mode: $(if [[ "$SINGLE_FOLD" == true ]]; then echo "Single fold ($FOLD_IDX)"; else echo "5-fold CV"; fi)"
 if [[ "$QUICK_MODE" == true ]]; then
-    echo "  ⚡ Quick mode enabled"
+    echo "  Quick mode enabled"
 fi
 if [[ "$PARALLEL_MODE" == true ]]; then
-    echo "  🔀 Parallel execution (max: $MAX_PARALLEL jobs)"
+    echo "  Parallel execution (max: $MAX_PARALLEL jobs)"
 fi
 
 # Check environment
@@ -488,6 +488,7 @@ fi
 mkdir -p results/{train,valid,test,plots}
 mkdir -p save_models
 mkdir -p logs
+mkdir -p stats
 
 # Estimate training time
 estimate_time "${FINAL_DATASETS[@]}"
@@ -549,14 +550,14 @@ TOTAL_DURATION=$((END_TIME - START_TIME))
 
 print_header "Pipeline Execution Complete!"
 
-echo "📊 Execution Summary:"
+echo "Execution Summary:"
 echo "   Total time: $((TOTAL_DURATION / 3600))h $((TOTAL_DURATION % 3600 / 60))m $((TOTAL_DURATION % 60))s"
 echo "   Successful: ${#SUCCESSFUL_DATASETS[@]}/${#FINAL_DATASETS[@]} datasets"
 echo "   Failed: ${#FAILED_DATASETS[@]}/${#FINAL_DATASETS[@]} datasets"
 echo ""
 
 if [[ ${#SUCCESSFUL_DATASETS[@]} -gt 0 ]]; then
-    echo "✓ Successful datasets:"
+    echo "Successful datasets:"
     for dataset in "${SUCCESSFUL_DATASETS[@]}"; do
         echo "   - $dataset"
     done
@@ -564,21 +565,23 @@ if [[ ${#SUCCESSFUL_DATASETS[@]} -gt 0 ]]; then
 fi
 
 if [[ ${#FAILED_DATASETS[@]} -gt 0 ]]; then
-    echo "✗ Failed datasets:"
+    echo "Failed datasets:"
     for dataset in "${FAILED_DATASETS[@]}"; do
         echo "   - $dataset"
     done
     echo ""
 fi
 
-echo "📁 Results Locations:"
-echo "   📈 Training metrics: results/train/"
-echo "   📊 Evaluations: results/test/"
-echo "   📉 Plots: results/plots/"
-echo "   🤖 Models: save_models/"
-echo "   📄 Progress log: $PROGRESS_FILE"
+echo "Results Locations:"
+echo "   Training metrics: results/train/"
+echo "   Evaluations: results/test/"
+echo "   Plots: results/plots/"
+echo "   Deep visualizations: figs/ (per-dataset per-KC analysis)"
+echo "   IRT parameters: stats/ (theta, alpha, beta from best models)"
+echo "   Models: save_models/"
+echo "   Progress log: $PROGRESS_FILE"
 if [[ ${#SUCCESSFUL_DATASETS[@]} -gt 1 ]]; then
-    echo "   📋 Comparison: results/comprehensive_comparison.csv"
+    echo "   Comparison: results/comprehensive_comparison.csv"
 fi
 
 print_success "All pipeline phases completed!"
@@ -588,7 +591,7 @@ if [[ "$QUICK_MODE" == true ]]; then
 fi
 
 if [[ ${#SUCCESSFUL_DATASETS[@]} -eq ${#FINAL_DATASETS[@]} ]]; then
-    print_success "🎉 All datasets completed successfully!"
+    print_success "All datasets completed successfully!"
 else
     print_warning "Some datasets failed. Check logs for details."
 fi

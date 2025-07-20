@@ -12,7 +12,7 @@
   "batch_size": 32,
   "seq_len": 50,
   "learning_rate": 0.001,
-  "n_epochs": 30,
+  "n_epochs": 1,
   "max_grad_norm": 5.0,
   "weight_decay": 1e-05,
   "data_dir": "./data",

@@ -14,7 +14,7 @@ import os
 import argparse
 import json
 import pickle
-from tqdm import tqdm
+# tqdm removed for performance
 
 from models.model import DeepIRTModel
 from data.dataloader import create_datasets, create_dataloader
@@ -97,7 +97,7 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
     }
     
     with torch.no_grad():
-        for batch_idx, batch in enumerate(tqdm(data_loader, desc="Extracting data")):
+        for batch_idx, batch in enumerate(data_loader):
             if batch_idx >= max_students:
                 break
                 
@@ -118,11 +118,26 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                         global_data['timesteps'].append(t)
                         global_data['question_ids'].append(q_data[student_idx, t].item())
                         
-                        # Extract discrimination parameter if available
-                        if hasattr(model, 'discrimination') and model.discrimination is not None:
-                            global_data['discrimination_params'].append(model.discrimination.item())
+                        # Extract question-specific discrimination parameters
+                        q_id = q_data[student_idx, t].item()
+                        if hasattr(model, 'prediction_network') and len(model.prediction_network) >= 4:
+                            final_layer = model.prediction_network[-1]
+                            if hasattr(final_layer, 'weight') and final_layer.weight is not None:
+                                # Get question-specific discrimination from embeddings
+                                if hasattr(model, 'q_embed') and q_id > 0 and q_id <= model.q_embed.num_embeddings - 1:
+                                    q_embed_weight = model.q_embed.weight[q_id]
+                                    # Use embedding norm as discrimination proxy
+                                    discrimination_proxy = torch.norm(q_embed_weight).item()
+                                    # Scale by final layer weight magnitude
+                                    weight_scale = torch.abs(final_layer.weight).mean().item()
+                                    discrimination_proxy = discrimination_proxy * weight_scale
+                                else:
+                                    discrimination_proxy = 1.0
+                                global_data['discrimination_params'].append(discrimination_proxy)
+                            else:
+                                global_data['discrimination_params'].append(1.0)
                         else:
-                            global_data['discrimination_params'].append(1.0)  # Default 1PL value
+                            global_data['discrimination_params'].append(1.0)
             
             # Extract per-knowledge component data if in per-KC mode
             if 'all_kc_thetas' in kc_info:
@@ -262,7 +277,7 @@ def plot_alpha_distribution(data, save_path=None):
         data (dict): Data dictionary containing 'discrimination_params'
         save_path (str, optional): Path to save the plot
     """
-    if 'discrimination_params' not in data or not data['discrimination_params']:
+    if 'discrimination_params' not in data or len(data['discrimination_params']) == 0:
         print("No discrimination parameters found in data")
         return
     
@@ -497,6 +512,18 @@ def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None,
         alpha_path = os.path.join(output_dir, "alpha_distribution.png")
         plot_alpha_distribution(global_data, alpha_path)
         created_files.append("alpha_distribution.png")
+        
+        # Generate per-KC distributions if Q-matrix is available  
+        if 'q_to_kc' in data and 'kc_names' in data and data['q_to_kc']:
+            # Generate per-KC beta distributions
+            per_kc_beta_path = os.path.join(output_dir, "per_kc_beta_distributions.png")
+            plot_per_kc_beta_distributions(global_data, data['q_to_kc'], data['kc_names'], per_kc_beta_path)
+            created_files.append("per_kc_beta_distributions.png")
+            
+            # Generate per-KC alpha distributions  
+            per_kc_alpha_path = os.path.join(output_dir, "per_kc_alpha_distributions.png")
+            plot_per_kc_alpha_distributions(global_data, data['q_to_kc'], data['kc_names'], per_kc_alpha_path)
+            created_files.append("per_kc_alpha_distributions.png")
     
     print(f"Created {len(created_files)} visualizations:")
     for file in created_files:
@@ -554,7 +581,6 @@ def main():
         print(f"Using dataset-specific seq_len={max_seq_len} for {dataset_name} visualization")
         
         _, _, test_dataset = create_datasets(
-            data_style=config['data_style'],
             data_dir=config['data_dir'],
             dataset_name=config['dataset_name'],
             seq_len=max_seq_len,  # Use dataset-specific seq_len
@@ -578,7 +604,14 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     created_files = []
     
-    data_to_save = {'global_data': global_data, 'dataset_name': dataset_name}
+    # Add Q-matrix info to data for per-KC visualizations
+    data_to_save = {
+        'global_data': global_data, 
+        'dataset_name': dataset_name,
+        'q_to_kc': getattr(model, 'q_to_kc', {}),
+        'kc_names': getattr(model, 'kc_names', {}),
+        'per_kc_mode': getattr(model, 'per_kc_mode', False)
+    }
     
     # Generate global visualizations
     if len(global_data['student_abilities']) > 0:
@@ -594,6 +627,27 @@ def main():
         alpha_path = os.path.join(args.output_dir, "alpha_distribution.png")
         plot_alpha_distribution(global_data, alpha_path)
         created_files.append("alpha_distribution.png")
+        
+        # Generate per-KC distributions if Q-matrix is available
+        per_kc_mode = getattr(model, 'per_kc_mode', False)
+        has_q_to_kc = hasattr(model, 'q_to_kc')
+        q_to_kc_data = getattr(model, 'q_to_kc', {})
+        
+        print(f"Per-KC check: per_kc_mode={per_kc_mode}, has_q_to_kc={has_q_to_kc}, q_to_kc_len={len(q_to_kc_data)}")
+        
+        if per_kc_mode and has_q_to_kc and q_to_kc_data:
+            print(f"Generating per-KC distributions for {len(q_to_kc_data)} questions")
+            # Generate per-KC beta distributions
+            per_kc_beta_path = os.path.join(args.output_dir, "per_kc_beta_distributions.png")
+            plot_per_kc_beta_distributions(global_data, model.q_to_kc, model.kc_names, per_kc_beta_path)
+            created_files.append("per_kc_beta_distributions.png")
+            
+            # Generate per-KC alpha distributions  
+            per_kc_alpha_path = os.path.join(args.output_dir, "per_kc_alpha_distributions.png")
+            plot_per_kc_alpha_distributions(global_data, model.q_to_kc, model.kc_names, per_kc_alpha_path)
+            created_files.append("per_kc_alpha_distributions.png")
+        else:
+            print(f"Skipping per-KC distributions - conditions not met")
     
     # Generate per-knowledge component visualizations
     if model.per_kc_mode and per_kc_data['kc_thetas']:
@@ -632,6 +686,158 @@ def main():
               f"β: {np.mean(global_data['item_difficulties']):.3f}±{np.std(global_data['item_difficulties']):.3f}")
     
     return True
+
+
+def plot_per_kc_beta_distributions(data, q_to_kc, kc_names, save_path=None):
+    """
+    Plot per-KC beta (difficulty) distributions.
+    
+    Args:
+        data (dict): Data dictionary containing 'item_difficulties'
+        q_to_kc (dict): Question to KC mapping
+        kc_names (dict): KC ID to name mapping
+        save_path (str, optional): Path to save the plot
+    """
+    if 'item_difficulties' not in data or len(data['item_difficulties']) == 0:
+        print("No beta parameters found for per-KC analysis")
+        return
+    
+    # Group difficulties by KC
+    kc_difficulties = {}
+    for q_idx, difficulty in enumerate(data['item_difficulties']):
+        q_id = q_idx + 1  # Assuming 1-indexed questions
+        if q_id in q_to_kc:
+            for kc_id in q_to_kc[q_id]:
+                if kc_id not in kc_difficulties:
+                    kc_difficulties[kc_id] = []
+                kc_difficulties[kc_id].append(difficulty)
+    
+    if not kc_difficulties:
+        print("No KC mappings found for beta analysis")
+        return
+    
+    # Create subplots
+    n_kcs = len(kc_difficulties)
+    cols = min(3, n_kcs)
+    rows = (n_kcs + cols - 1) // cols
+    
+    fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows))
+    if n_kcs == 1:
+        axes = [axes]
+    elif rows == 1:
+        axes = axes.reshape(1, -1)
+    
+    fig.suptitle('Per-KC Beta (Difficulty) Distributions', fontsize=16, fontweight='bold')
+    
+    for idx, (kc_id, difficulties) in enumerate(sorted(kc_difficulties.items())):
+        row, col = idx // cols, idx % cols
+        ax = axes[row, col] if rows > 1 else axes[col]
+        
+        kc_name = kc_names.get(kc_id, f"KC_{kc_id}")
+        ax.hist(difficulties, bins=min(20, len(difficulties)), alpha=0.7, edgecolor='black')
+        ax.set_title(f'{kc_name} (n={len(difficulties)})')
+        ax.set_xlabel('Beta (Difficulty)')
+        ax.set_ylabel('Frequency')
+        ax.grid(True, alpha=0.3)
+        
+        # Add mean line
+        mean_diff = np.mean(difficulties)
+        ax.axvline(mean_diff, color='red', linestyle='--', label=f'Mean: {mean_diff:.3f}')
+        ax.legend()
+    
+    # Hide empty subplots
+    for idx in range(n_kcs, rows * cols):
+        if rows > 1:
+            row, col = idx // cols, idx % cols
+            axes[row, col].set_visible(False)
+        elif cols > 1:
+            axes[idx].set_visible(False)
+    
+    plt.tight_layout()
+    
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Per-KC beta distributions saved to {save_path}")
+    else:
+        plt.show()
+    
+    plt.close()
+
+
+def plot_per_kc_alpha_distributions(data, q_to_kc, kc_names, save_path=None):
+    """
+    Plot per-KC alpha (discrimination) distributions.
+    
+    Args:
+        data (dict): Data dictionary containing 'discrimination_params'
+        q_to_kc (dict): Question to KC mapping  
+        kc_names (dict): KC ID to name mapping
+        save_path (str, optional): Path to save the plot
+    """
+    if 'discrimination_params' not in data or len(data['discrimination_params']) == 0:
+        print("No alpha parameters found for per-KC analysis")
+        return
+    
+    # Group discrimination params by KC
+    kc_alphas = {}
+    for q_idx, alpha in enumerate(data['discrimination_params']):
+        q_id = q_idx + 1  # Assuming 1-indexed questions
+        if q_id in q_to_kc:
+            for kc_id in q_to_kc[q_id]:
+                if kc_id not in kc_alphas:
+                    kc_alphas[kc_id] = []
+                kc_alphas[kc_id].append(alpha)
+    
+    if not kc_alphas:
+        print("No KC mappings found for alpha analysis")
+        return
+    
+    # Create subplots
+    n_kcs = len(kc_alphas)
+    cols = min(3, n_kcs)
+    rows = (n_kcs + cols - 1) // cols
+    
+    fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows))
+    if n_kcs == 1:
+        axes = [axes]
+    elif rows == 1:
+        axes = axes.reshape(1, -1)
+    
+    fig.suptitle('Per-KC Alpha (Discrimination) Distributions', fontsize=16, fontweight='bold')
+    
+    for idx, (kc_id, alphas) in enumerate(sorted(kc_alphas.items())):
+        row, col = idx // cols, idx % cols
+        ax = axes[row, col] if rows > 1 else axes[col]
+        
+        kc_name = kc_names.get(kc_id, f"KC_{kc_id}")
+        ax.hist(alphas, bins=min(20, len(alphas)), alpha=0.7, edgecolor='black', color='purple')
+        ax.set_title(f'{kc_name} (n={len(alphas)})')
+        ax.set_xlabel('Alpha (Discrimination)')
+        ax.set_ylabel('Frequency')
+        ax.grid(True, alpha=0.3)
+        
+        # Add mean line
+        mean_alpha = np.mean(alphas)
+        ax.axvline(mean_alpha, color='red', linestyle='--', label=f'Mean: {mean_alpha:.3f}')
+        ax.legend()
+    
+    # Hide empty subplots
+    for idx in range(n_kcs, rows * cols):
+        if rows > 1:
+            row, col = idx // cols, idx % cols
+            axes[row, col].set_visible(False)
+        elif cols > 1:
+            axes[idx].set_visible(False)
+    
+    plt.tight_layout()
+    
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Per-KC alpha distributions saved to {save_path}")
+    else:
+        plt.show()
+    
+    plt.close()
 
 
 if __name__ == "__main__":

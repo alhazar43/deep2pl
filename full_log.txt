@@ -1,0 +1,1013 @@
+================================================
+ Phase 4: Deep Model Visualization
+================================================
+
+[INFO] Generating detailed visualizations with: final_model_assist2017_fold0.pth
+Using dataset-specific seq_len=50 for assist2017 visualization
+Loading single file data from ./data/assist2017/assist2017_train.txt and ./data/assist2017/assist2017_test.txt
+Loading single file data from ./data/assist2017/assist2017_train.txt and ./data/assist2017/assist2017_test.txt
+Loading single file data from ./data/assist2017/assist2017_train.txt and ./data/assist2017/assist2017_test.txt
+Per-KC check: per_kc_mode=False, has_q_to_kc=True, q_to_kc_len=0
+Skipping per-KC distributions - conditions not met
+Created 3 visualizations:
+  - global_theta_heatmap.png
+  - beta_distribution.png
+  - alpha_distribution.png
+θ: 0.000±0.000, β: 0.000±0.000
+[SUCCESS] Deep model visualizations generated in figs/assist2017/
+
+================================================
+ Phase 5: Results Summary
+================================================
+
+[SUCCESS] Summary saved to: results/pipeline_summary_assist2017.txt
+
+================================================
+ Pipeline Completed Successfully!
+================================================
+
+Results Summary:
+   Dataset: assist2017
+   Models: 1 trained
+   Training: Single fold
+
+Output Locations:
+   Training metrics: results/train/
+   Evaluation: results/test/
+   Plots: results/plots/ (includes ROC/PR curves)
+   Deep visualizations: figs/assist2017/ (per-KC analysis)
+   IRT parameters: stats/ (theta, alpha, beta from best models)
+   Models: save_models/
+   Summary: results/pipeline_summary_assist2017.txt
+
+[INFO] Quick Results Preview:
+   Test AUC: 0.6092
+   Test Accuracy: 0.6293
+   Test Loss: 0.6441
+[SUCCESS] All phases completed successfully!
+[INFO] You can now examine the results in the respective directories.
+[WARNING] This was a quick test run. For full results, run without --quick flag.
+[SUCCESS] assist2017 completed in 20s
+
+================================================================
+ Dataset 5/9: assist2009
+================================================================
+
+
+--- Processing Dataset: assist2009 ---
+
+[INFO] Command: ./run_dataset.sh assist2009 --epochs 1 --single-fold --fold 0 --quick
+
+================================================
+ Deep-2PL Comprehensive Pipeline
+================================================
+
+[INFO] Dataset: assist2009
+[INFO] Epochs: 1
+[INFO] Mode: Single fold (fold 0)
+[WARNING] Quick mode enabled (for testing)
+
+================================================
+ Phase 1: Training
+================================================
+
+[INFO] Running: python train.py --dataset assist2009 --epochs 1 --single_fold --fold 0
+2025-07-21 01:24:04,116 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 01:24:04,116 - INFO - Dataset: assist2009
+2025-07-21 01:24:04,116 - INFO - Fold: 0
+2025-07-21 01:24:04,116 - INFO - Epochs: 1
+2025-07-21 01:24:04,116 - INFO - Batch size: 32
+2025-07-21 01:24:04,116 - INFO - Learning rate: 0.001
+2025-07-21 01:24:04,255 - INFO - Using device: cuda
+2025-07-21 01:24:04,255 - INFO - Loading assist2009 dataset...
+2025-07-21 01:24:04,600 - INFO - Data: 2688/673/856 | Model: 161,551 params | Per-KC: False
+2025-07-21 01:24:05,152 - INFO - Starting training...
+2025-07-21 01:24:12,974 - INFO - Final evaluation on test set...
+2025-07-21 01:24:13,537 - INFO - Test: Loss=0.3536, AUC=0.9012, Acc=0.8179
+2025-07-21 01:24:13,544 - INFO - Training completed!
+2025-07-21 01:24:13,544 - INFO - Best validation AUC: 0.0000
+2025-07-21 01:24:13,544 - INFO - Final test AUC: 0.9012
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+
+=== Training Summary (Fold 0) ===
+Dataset: assist2009
+Best Validation AUC: 0.0000
+Final Test AUC: 0.9012
+[SUCCESS] Training completed successfully
+
+================================================
+ Phase 2: Model Evaluation
+================================================
+
+[WARNING] No trained models found, checking for final models...
+[INFO] Found 1 model(s) for evaluation
+[INFO] Evaluating: final_model_assist2009_fold0.pth
+2025-07-21 01:24:15,631 - INFO - Using device: cuda
+2025-07-21 01:24:15,631 - INFO - Loading model from save_models/final_model_assist2009_fold0.pth
+2025-07-21 01:24:15,804 - INFO - Loaded model: assist2009, 161,551 parameters
+2025-07-21 01:24:15,804 - INFO - Loading assist2009 dataset...
+2025-07-21 01:24:15,987 - INFO - Evaluating on test set...
+2025-07-21 01:24:16,890 - INFO - === Evaluation Results ===
+2025-07-21 01:24:16,890 - INFO - Dataset: assist2009
+2025-07-21 01:24:16,890 - INFO - Split: test
+2025-07-21 01:24:16,890 - INFO - Loss: 0.3536
+2025-07-21 01:24:16,890 - INFO - AUC: 0.9012
+2025-07-21 01:24:16,890 - INFO - Accuracy: 0.8179
+2025-07-21 01:24:16,890 - INFO - Samples: 42,800
+2025-07-21 01:24:16,890 - INFO - Questions: 101
+2025-07-21 01:24:16,890 - INFO - Detailed results saved to: results/test/eval_final_model_assist2009_fold0_test.json
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+
+=== Evaluation Summary ===
+Model: final_model_assist2009_fold0
+Dataset: assist2009
+Split: test
+Loss: 0.3536
+AUC: 0.9012
+Accuracy: 0.8179
+Samples: 42,800
+[SUCCESS] Evaluation completed: final_model_assist2009_fold0.pth
+
+================================================
+ Phase 3: Visualization & Metrics
+================================================
+
+[INFO] Generating training metrics...
+Plotting metrics for dataset: assist2009
+Training curves saved to: results/plots/training_curves_assist2009_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Training metrics generated
+[INFO] Generating comprehensive plots...
+Plotting metrics for all datasets in results/train
+Processing dataset: assist2017
+Training curves saved to: results/plots/training_curves_assist2017_fold0.png
+Processing dataset: assist2009
+Training curves saved to: results/plots/training_curves_assist2009_fold0.png
+Processing dataset: assist2009_updated
+Training curves saved to: results/plots/training_curves_assist2009_updated_fold0.png
+Processing dataset: assist2015
+Training curves saved to: results/plots/training_curves_assist2015_fold0.png
+Processing dataset: synthetic
+Training curves saved to: results/plots/training_curves_synthetic_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Comprehensive plots generated
+[INFO] Generating evaluation visualizations (ROC/PR curves)...
+Loading evaluation results from: results/test
+Found results for 2 models
+
+Generating visualizations...
+ROC curves saved to: results/plots/roc_curves_assist2009.png
+Precision-Recall curves saved to: results/plots/precision_recall_curves_assist2009.png
+Performance summary saved to: results/plots/performance_summary_assist2009.png
+
+All visualizations saved to: results/plots
+
+Performance Summary:
+------------------------------------------------------------
+assist2009_fold0          | AUC: 0.9012 | Acc: 0.8179 | Loss: 0.3536 | Samples: 42800
+assist2009_updated_fold0  | AUC: 0.9919 | Acc: 0.9786 | Loss: 0.0509 | Samples: 1476000
+[SUCCESS] ROC and Precision-Recall curves generated
+
+================================================
+ Phase 4: Deep Model Visualization
+================================================
+
+[INFO] Generating detailed visualizations with: final_model_assist2009_fold0.pth
+Using dataset-specific seq_len=50 for assist2009 visualization
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+Per-KC check: per_kc_mode=False, has_q_to_kc=True, q_to_kc_len=0
+Skipping per-KC distributions - conditions not met
+Created 3 visualizations:
+  - global_theta_heatmap.png
+  - beta_distribution.png
+  - alpha_distribution.png
+θ: 0.000±0.000, β: 0.000±0.000
+[SUCCESS] Deep model visualizations generated in figs/assist2009/
+
+================================================
+ Phase 5: Results Summary
+================================================
+
+[SUCCESS] Summary saved to: results/pipeline_summary_assist2009.txt
+
+================================================
+ Pipeline Completed Successfully!
+================================================
+
+Results Summary:
+   Dataset: assist2009
+   Models: 1 trained
+   Training: Single fold
+
+Output Locations:
+   Training metrics: results/train/
+   Evaluation: results/test/
+   Plots: results/plots/ (includes ROC/PR curves)
+   Deep visualizations: figs/assist2009/ (per-KC analysis)
+   IRT parameters: stats/ (theta, alpha, beta from best models)
+   Models: save_models/
+   Summary: results/pipeline_summary_assist2009.txt
+
+[INFO] Quick Results Preview:
+   Test AUC: 0.9012
+   Test Accuracy: 0.8179
+   Test Loss: 0.3536
+[SUCCESS] All phases completed successfully!
+[INFO] You can now examine the results in the respective directories.
+[WARNING] This was a quick test run. For full results, run without --quick flag.
+[SUCCESS] assist2009 completed in 26s
+
+================================================================
+ Dataset 6/9: kddcup2010
+================================================================
+
+
+--- Processing Dataset: kddcup2010 ---
+
+[INFO] Command: ./run_dataset.sh kddcup2010 --epochs 1 --single-fold --fold 0 --quick
+
+================================================
+ Deep-2PL Comprehensive Pipeline
+================================================
+
+[INFO] Dataset: kddcup2010
+[INFO] Epochs: 1
+[INFO] Mode: Single fold (fold 0)
+[WARNING] Quick mode enabled (for testing)
+
+================================================
+ Phase 1: Training
+================================================
+
+[INFO] Running: python train.py --dataset kddcup2010 --epochs 1 --single_fold --fold 0
+2025-07-21 01:24:29,991 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 01:24:29,991 - INFO - Dataset: kddcup2010
+2025-07-21 01:24:29,991 - INFO - Fold: 0
+2025-07-21 01:24:29,991 - INFO - Epochs: 1
+2025-07-21 01:24:29,991 - INFO - Batch size: 32
+2025-07-21 01:24:29,991 - INFO - Learning rate: 0.001
+2025-07-21 01:24:30,090 - INFO - Using device: cuda
+2025-07-21 01:24:30,091 - INFO - Loading kddcup2010 dataset...
+2025-07-21 01:24:30,523 - INFO - Data: 1723/431/538 | Model: 397,801 params | Per-KC: False
+2025-07-21 01:24:31,028 - INFO - Starting training...
+2025-07-21 01:24:34,836 - INFO - Final evaluation on test set...
+2025-07-21 01:24:35,173 - INFO - Test: Loss=0.4774, AUC=0.7535, Acc=0.7852
+2025-07-21 01:24:35,185 - INFO - Training completed!
+2025-07-21 01:24:35,185 - INFO - Best validation AUC: 0.0000
+2025-07-21 01:24:35,185 - INFO - Final test AUC: 0.7535
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+
+=== Training Summary (Fold 0) ===
+Dataset: kddcup2010
+Best Validation AUC: 0.0000
+Final Test AUC: 0.7535
+[SUCCESS] Training completed successfully
+
+================================================
+ Phase 2: Model Evaluation
+================================================
+
+[WARNING] No trained models found, checking for final models...
+[INFO] Found 1 model(s) for evaluation
+[INFO] Evaluating: final_model_kddcup2010_fold0.pth
+2025-07-21 01:24:37,119 - INFO - Using device: cuda
+2025-07-21 01:24:37,119 - INFO - Loading model from save_models/final_model_kddcup2010_fold0.pth
+2025-07-21 01:24:37,285 - INFO - Loaded model: kddcup2010, 397,801 parameters
+2025-07-21 01:24:37,285 - INFO - Loading kddcup2010 dataset...
+2025-07-21 01:24:37,586 - INFO - Evaluating on test set...
+2025-07-21 01:24:38,522 - INFO - === Evaluation Results ===
+2025-07-21 01:24:38,522 - INFO - Dataset: kddcup2010
+2025-07-21 01:24:38,522 - INFO - Split: test
+2025-07-21 01:24:38,522 - INFO - Loss: 0.4774
+2025-07-21 01:24:38,522 - INFO - AUC: 0.7535
+2025-07-21 01:24:38,522 - INFO - Accuracy: 0.7852
+2025-07-21 01:24:38,522 - INFO - Samples: 26,900
+2025-07-21 01:24:38,522 - INFO - Questions: 562
+2025-07-21 01:24:38,522 - INFO - Detailed results saved to: results/test/eval_final_model_kddcup2010_fold0_test.json
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+
+=== Evaluation Summary ===
+Model: final_model_kddcup2010_fold0
+Dataset: kddcup2010
+Split: test
+Loss: 0.4774
+AUC: 0.7535
+Accuracy: 0.7852
+Samples: 26,900
+[SUCCESS] Evaluation completed: final_model_kddcup2010_fold0.pth
+
+================================================
+ Phase 3: Visualization & Metrics
+================================================
+
+[INFO] Generating training metrics...
+Plotting metrics for dataset: kddcup2010
+Training curves saved to: results/plots/training_curves_kddcup2010_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Training metrics generated
+[INFO] Generating comprehensive plots...
+Plotting metrics for all datasets in results/train
+Processing dataset: assist2017
+Training curves saved to: results/plots/training_curves_assist2017_fold0.png
+Processing dataset: kddcup2010
+Training curves saved to: results/plots/training_curves_kddcup2010_fold0.png
+Processing dataset: synthetic
+Training curves saved to: results/plots/training_curves_synthetic_fold0.png
+Processing dataset: assist2009_updated
+Training curves saved to: results/plots/training_curves_assist2009_updated_fold0.png
+Processing dataset: assist2009
+Training curves saved to: results/plots/training_curves_assist2009_fold0.png
+Processing dataset: assist2015
+Training curves saved to: results/plots/training_curves_assist2015_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Comprehensive plots generated
+[INFO] Generating evaluation visualizations (ROC/PR curves)...
+Loading evaluation results from: results/test
+Found results for 1 models
+
+Generating visualizations...
+ROC curves saved to: results/plots/roc_curves_kddcup2010.png
+Precision-Recall curves saved to: results/plots/precision_recall_curves_kddcup2010.png
+Performance summary saved to: results/plots/performance_summary_kddcup2010.png
+
+All visualizations saved to: results/plots
+
+Performance Summary:
+------------------------------------------------------------
+kddcup2010_fold0          | AUC: 0.7535 | Acc: 0.7852 | Loss: 0.4774 | Samples: 26900
+[SUCCESS] ROC and Precision-Recall curves generated
+
+================================================
+ Phase 4: Deep Model Visualization
+================================================
+
+[INFO] Generating detailed visualizations with: final_model_kddcup2010_fold0.pth
+Using dataset-specific seq_len=50 for kddcup2010 visualization
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+Loading single file data from ./data/kddcup2010/kddcup2010_train.txt and ./data/kddcup2010/kddcup2010_test.txt
+Per-KC check: per_kc_mode=False, has_q_to_kc=True, q_to_kc_len=0
+Skipping per-KC distributions - conditions not met
+Created 3 visualizations:
+  - global_theta_heatmap.png
+  - beta_distribution.png
+  - alpha_distribution.png
+θ: 0.000±0.000, β: 0.000±0.000
+[SUCCESS] Deep model visualizations generated in figs/kddcup2010/
+
+================================================
+ Phase 5: Results Summary
+================================================
+
+[SUCCESS] Summary saved to: results/pipeline_summary_kddcup2010.txt
+
+================================================
+ Pipeline Completed Successfully!
+================================================
+
+Results Summary:
+   Dataset: kddcup2010
+   Models: 1 trained
+   Training: Single fold
+
+Output Locations:
+   Training metrics: results/train/
+   Evaluation: results/test/
+   Plots: results/plots/ (includes ROC/PR curves)
+   Deep visualizations: figs/kddcup2010/ (per-KC analysis)
+   IRT parameters: stats/ (theta, alpha, beta from best models)
+   Models: save_models/
+   Summary: results/pipeline_summary_kddcup2010.txt
+
+[INFO] Quick Results Preview:
+   Test AUC: 0.7535
+   Test Accuracy: 0.7852
+   Test Loss: 0.4774
+[SUCCESS] All phases completed successfully!
+[INFO] You can now examine the results in the respective directories.
+[WARNING] This was a quick test run. For full results, run without --quick flag.
+[SUCCESS] kddcup2010 completed in 25s
+
+================================================================
+ Dataset 7/9: STATICS
+================================================================
+
+
+--- Processing Dataset: STATICS ---
+
+[INFO] Command: ./run_dataset.sh STATICS --epochs 1 --single-fold --fold 0 --quick
+
+================================================
+ Deep-2PL Comprehensive Pipeline
+================================================
+
+[INFO] Dataset: STATICS
+[INFO] Epochs: 1
+[INFO] Mode: Single fold (fold 0)
+[WARNING] Quick mode enabled (for testing)
+
+================================================
+ Phase 1: Training
+================================================
+
+[INFO] Running: python train.py --dataset STATICS --epochs 1 --single_fold --fold 0
+2025-07-21 01:24:55,021 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 01:24:55,022 - INFO - Dataset: STATICS
+2025-07-21 01:24:55,022 - INFO - Fold: 0
+2025-07-21 01:24:55,022 - INFO - Epochs: 1
+2025-07-21 01:24:55,022 - INFO - Batch size: 16
+2025-07-21 01:24:55,022 - INFO - Learning rate: 0.001
+2025-07-21 01:24:55,117 - INFO - Using device: cuda
+2025-07-21 01:24:55,117 - INFO - Loading STATICS dataset...
+2025-07-21 01:24:55,347 - INFO - Data: 179/50/104 | Model: 535,951 params | Per-KC: True (98 KCs)
+2025-07-21 01:24:55,924 - INFO - Starting training...
+2025-07-21 01:25:16,275 - INFO - Final evaluation on test set...
+2025-07-21 01:25:18,949 - INFO - Test: Loss=0.2725, AUC=0.9183, Acc=0.8893
+2025-07-21 01:25:18,961 - INFO - Training completed!
+2025-07-21 01:25:18,961 - INFO - Best validation AUC: 0.0000
+2025-07-21 01:25:18,961 - INFO - Final test AUC: 0.9183
+Loading pre-split data from ./data/STATICS/STATICS_test.csv
+Loading pre-split data from ./data/STATICS/STATICS_train0.csv
+Loading pre-split data from ./data/STATICS/STATICS_valid0.csv
+Loading pre-split data from ./data/STATICS/STATICS_test.csv
+Successfully loaded Q-matrix: 1223 questions, 98 knowledge components
+
+=== Training Summary (Fold 0) ===
+Dataset: STATICS
+Best Validation AUC: 0.0000
+Final Test AUC: 0.9183
+[SUCCESS] Training completed successfully
+
+================================================
+ Phase 2: Model Evaluation
+================================================
+
+[WARNING] No trained models found, checking for final models...
+[INFO] Found 1 model(s) for evaluation
+[INFO] Evaluating: final_model_STATICS_fold0.pth
+2025-07-21 01:25:20,803 - INFO - Using device: cuda
+2025-07-21 01:25:20,803 - INFO - Loading model from save_models/final_model_STATICS_fold0.pth
+2025-07-21 01:25:20,963 - INFO - Loaded model: STATICS, 535,951 parameters
+2025-07-21 01:25:20,963 - INFO - Loading STATICS dataset...
+2025-07-21 01:25:20,997 - INFO - Evaluating on test set...
+2025-07-21 01:25:23,949 - INFO - === Evaluation Results ===
+2025-07-21 01:25:23,949 - INFO - Dataset: STATICS
+2025-07-21 01:25:23,949 - INFO - Split: test
+2025-07-21 01:25:23,949 - INFO - Loss: 0.2724
+2025-07-21 01:25:23,949 - INFO - AUC: 0.9183
+2025-07-21 01:25:23,949 - INFO - Accuracy: 0.8893
+2025-07-21 01:25:23,949 - INFO - Samples: 124,800
+2025-07-21 01:25:23,950 - INFO - Questions: 1218
+2025-07-21 01:25:23,950 - INFO - Detailed results saved to: results/test/eval_final_model_STATICS_fold0_test.json
+Successfully loaded Q-matrix: 1223 questions, 98 knowledge components
+Loading pre-split data from ./data/STATICS/STATICS_train0.csv
+Loading pre-split data from ./data/STATICS/STATICS_valid0.csv
+Loading pre-split data from ./data/STATICS/STATICS_test.csv
+
+=== Evaluation Summary ===
+Model: final_model_STATICS_fold0
+Dataset: STATICS
+Split: test
+Loss: 0.2724
+AUC: 0.9183
+Accuracy: 0.8893
+Samples: 124,800
+[SUCCESS] Evaluation completed: final_model_STATICS_fold0.pth
+
+================================================
+ Phase 3: Visualization & Metrics
+================================================
+
+[INFO] Generating training metrics...
+Plotting metrics for dataset: STATICS
+Training curves saved to: results/plots/training_curves_STATICS_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Training metrics generated
+[INFO] Generating comprehensive plots...
+Plotting metrics for all datasets in results/train
+Processing dataset: assist2015
+Training curves saved to: results/plots/training_curves_assist2015_fold0.png
+Processing dataset: synthetic
+Training curves saved to: results/plots/training_curves_synthetic_fold0.png
+Processing dataset: assist2009
+Training curves saved to: results/plots/training_curves_assist2009_fold0.png
+Processing dataset: assist2009_updated
+Training curves saved to: results/plots/training_curves_assist2009_updated_fold0.png
+Processing dataset: kddcup2010
+Training curves saved to: results/plots/training_curves_kddcup2010_fold0.png
+Processing dataset: STATICS
+Training curves saved to: results/plots/training_curves_STATICS_fold0.png
+Processing dataset: assist2017
+Training curves saved to: results/plots/training_curves_assist2017_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Comprehensive plots generated
+[INFO] Generating evaluation visualizations (ROC/PR curves)...
+Loading evaluation results from: results/test
+Found results for 1 models
+
+Generating visualizations...
+ROC curves saved to: results/plots/roc_curves_STATICS.png
+Precision-Recall curves saved to: results/plots/precision_recall_curves_STATICS.png
+Performance summary saved to: results/plots/performance_summary_STATICS.png
+
+All visualizations saved to: results/plots
+
+Performance Summary:
+------------------------------------------------------------
+STATICS_fold0             | AUC: 0.9183 | Acc: 0.8893 | Loss: 0.2724 | Samples: 124800
+[SUCCESS] ROC and Precision-Recall curves generated
+
+================================================
+ Phase 4: Deep Model Visualization
+================================================
+
+[INFO] Generating detailed visualizations with: final_model_STATICS_fold0.pth
+Successfully loaded Q-matrix: 1223 questions, 98 knowledge components
+Using dataset-specific seq_len=1200 for STATICS visualization
+Loading pre-split data from ./data/STATICS/STATICS_train0.csv
+Loading pre-split data from ./data/STATICS/STATICS_valid0.csv
+Loading pre-split data from ./data/STATICS/STATICS_test.csv
+Per-KC check: per_kc_mode=True, has_q_to_kc=True, q_to_kc_len=1223
+Generating per-KC distributions for 1223 questions
+Per-KC beta distributions saved to figs/STATICS/per_kc_beta_distributions.png
+Per-KC alpha distributions saved to figs/STATICS/per_kc_alpha_distributions.png
+Created 5 visualizations:
+  - global_theta_heatmap.png
+  - beta_distribution.png
+  - alpha_distribution.png
+  - per_kc_beta_distributions.png
+  - per_kc_alpha_distributions.png
+θ: 0.000±0.000, β: 0.000±0.000
+[SUCCESS] Deep model visualizations generated in figs/STATICS/
+
+================================================
+ Phase 5: Results Summary
+================================================
+
+[SUCCESS] Summary saved to: results/pipeline_summary_STATICS.txt
+
+================================================
+ Pipeline Completed Successfully!
+================================================
+
+Results Summary:
+   Dataset: STATICS
+   Models: 1 trained
+   Training: Single fold
+
+Output Locations:
+   Training metrics: results/train/
+   Evaluation: results/test/
+   Plots: results/plots/ (includes ROC/PR curves)
+   Deep visualizations: figs/STATICS/ (per-KC analysis)
+   IRT parameters: stats/ (theta, alpha, beta from best models)
+   Models: save_models/
+   Summary: results/pipeline_summary_STATICS.txt
+
+[INFO] Quick Results Preview:
+   Test AUC: 0.9183
+   Test Accuracy: 0.8893
+   Test Loss: 0.2724
+[SUCCESS] All phases completed successfully!
+[INFO] You can now examine the results in the respective directories.
+[WARNING] This was a quick test run. For full results, run without --quick flag.
+[SUCCESS] STATICS completed in 71s
+
+================================================================
+ Dataset 8/9: statics2011
+================================================================
+
+
+--- Processing Dataset: statics2011 ---
+
+[INFO] Command: ./run_dataset.sh statics2011 --epochs 1 --single-fold --fold 0 --quick
+
+================================================
+ Deep-2PL Comprehensive Pipeline
+================================================
+
+[INFO] Dataset: statics2011
+[INFO] Epochs: 1
+[INFO] Mode: Single fold (fold 0)
+[WARNING] Quick mode enabled (for testing)
+
+================================================
+ Phase 1: Training
+================================================
+
+[INFO] Running: python train.py --dataset statics2011 --epochs 1 --single_fold --fold 0
+2025-07-21 01:26:06,300 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 01:26:06,301 - INFO - Dataset: statics2011
+2025-07-21 01:26:06,301 - INFO - Fold: 0
+2025-07-21 01:26:06,301 - INFO - Epochs: 1
+2025-07-21 01:26:06,301 - INFO - Batch size: 32
+2025-07-21 01:26:06,301 - INFO - Learning rate: 0.001
+2025-07-21 01:26:06,412 - INFO - Using device: cuda
+2025-07-21 01:26:06,412 - INFO - Loading statics2011 dataset...
+2025-07-21 01:26:06,707 - INFO - Data: 213/54/66 | Model: 655,201 params | Per-KC: False
+2025-07-21 01:26:07,315 - INFO - Starting training...
+2025-07-21 01:26:08,351 - INFO - Final evaluation on test set...
+2025-07-21 01:26:08,434 - INFO - Test: Loss=0.5496, AUC=0.6411, Acc=0.8406
+2025-07-21 01:26:08,454 - INFO - Training completed!
+2025-07-21 01:26:08,454 - INFO - Best validation AUC: 0.0000
+2025-07-21 01:26:08,454 - INFO - Final test AUC: 0.6411
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+
+=== Training Summary (Fold 0) ===
+Dataset: statics2011
+Best Validation AUC: 0.0000
+Final Test AUC: 0.6411
+[SUCCESS] Training completed successfully
+
+================================================
+ Phase 2: Model Evaluation
+================================================
+
+[WARNING] No trained models found, checking for final models...
+[INFO] Found 1 model(s) for evaluation
+[INFO] Evaluating: final_model_statics2011_fold0.pth
+2025-07-21 01:26:10,386 - INFO - Using device: cuda
+2025-07-21 01:26:10,386 - INFO - Loading model from save_models/final_model_statics2011_fold0.pth
+2025-07-21 01:26:10,564 - INFO - Loaded model: statics2011, 655,201 parameters
+2025-07-21 01:26:10,564 - INFO - Loading statics2011 dataset...
+2025-07-21 01:26:10,643 - INFO - Evaluating on test set...
+2025-07-21 01:26:10,950 - INFO - === Evaluation Results ===
+2025-07-21 01:26:10,950 - INFO - Dataset: statics2011
+2025-07-21 01:26:10,950 - INFO - Split: test
+2025-07-21 01:26:10,950 - INFO - Loss: 0.5496
+2025-07-21 01:26:10,950 - INFO - AUC: 0.6411
+2025-07-21 01:26:10,950 - INFO - Accuracy: 0.8406
+2025-07-21 01:26:10,950 - INFO - Samples: 3,300
+2025-07-21 01:26:10,950 - INFO - Questions: 153
+2025-07-21 01:26:10,950 - INFO - Detailed results saved to: results/test/eval_final_model_statics2011_fold0_test.json
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+
+=== Evaluation Summary ===
+Model: final_model_statics2011_fold0
+Dataset: statics2011
+Split: test
+Loss: 0.5496
+AUC: 0.6411
+Accuracy: 0.8406
+Samples: 3,300
+[SUCCESS] Evaluation completed: final_model_statics2011_fold0.pth
+
+================================================
+ Phase 3: Visualization & Metrics
+================================================
+
+[INFO] Generating training metrics...
+Plotting metrics for dataset: statics2011
+Training curves saved to: results/plots/training_curves_statics2011_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Training metrics generated
+[INFO] Generating comprehensive plots...
+Plotting metrics for all datasets in results/train
+Processing dataset: assist2009_updated
+Training curves saved to: results/plots/training_curves_assist2009_updated_fold0.png
+Processing dataset: kddcup2010
+Training curves saved to: results/plots/training_curves_kddcup2010_fold0.png
+Processing dataset: assist2009
+Training curves saved to: results/plots/training_curves_assist2009_fold0.png
+Processing dataset: assist2015
+Training curves saved to: results/plots/training_curves_assist2015_fold0.png
+Processing dataset: statics2011
+Training curves saved to: results/plots/training_curves_statics2011_fold0.png
+Processing dataset: synthetic
+Training curves saved to: results/plots/training_curves_synthetic_fold0.png
+Processing dataset: STATICS
+Training curves saved to: results/plots/training_curves_STATICS_fold0.png
+Processing dataset: assist2017
+Training curves saved to: results/plots/training_curves_assist2017_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Comprehensive plots generated
+[INFO] Generating evaluation visualizations (ROC/PR curves)...
+Loading evaluation results from: results/test
+Found results for 1 models
+
+Generating visualizations...
+ROC curves saved to: results/plots/roc_curves_statics2011.png
+Precision-Recall curves saved to: results/plots/precision_recall_curves_statics2011.png
+Performance summary saved to: results/plots/performance_summary_statics2011.png
+
+All visualizations saved to: results/plots
+
+Performance Summary:
+------------------------------------------------------------
+statics2011_fold0         | AUC: 0.6411 | Acc: 0.8406 | Loss: 0.5496 | Samples: 3300
+[SUCCESS] ROC and Precision-Recall curves generated
+
+================================================
+ Phase 4: Deep Model Visualization
+================================================
+
+[INFO] Generating detailed visualizations with: final_model_statics2011_fold0.pth
+Using dataset-specific seq_len=50 for statics2011 visualization
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+Loading single file data from ./data/statics2011/static2011_train.txt and ./data/statics2011/static2011_test.txt
+Per-KC check: per_kc_mode=False, has_q_to_kc=True, q_to_kc_len=0
+Skipping per-KC distributions - conditions not met
+Created 3 visualizations:
+  - global_theta_heatmap.png
+  - beta_distribution.png
+  - alpha_distribution.png
+θ: 0.000±0.000, β: 0.000±0.000
+[SUCCESS] Deep model visualizations generated in figs/statics2011/
+
+================================================
+ Phase 5: Results Summary
+================================================
+
+[SUCCESS] Summary saved to: results/pipeline_summary_statics2011.txt
+
+================================================
+ Pipeline Completed Successfully!
+================================================
+
+Results Summary:
+   Dataset: statics2011
+   Models: 1 trained
+   Training: Single fold
+
+Output Locations:
+   Training metrics: results/train/
+   Evaluation: results/test/
+   Plots: results/plots/ (includes ROC/PR curves)
+   Deep visualizations: figs/statics2011/ (per-KC analysis)
+   IRT parameters: stats/ (theta, alpha, beta from best models)
+   Models: save_models/
+   Summary: results/pipeline_summary_statics2011.txt
+
+[INFO] Quick Results Preview:
+   Test AUC: 0.6411
+   Test Accuracy: 0.8406
+   Test Loss: 0.5496
+[SUCCESS] All phases completed successfully!
+[INFO] You can now examine the results in the respective directories.
+[WARNING] This was a quick test run. For full results, run without --quick flag.
+[SUCCESS] statics2011 completed in 21s
+
+================================================================
+ Dataset 9/9: fsaif1tof3
+================================================================
+
+
+--- Processing Dataset: fsaif1tof3 ---
+
+[INFO] Command: ./run_dataset.sh fsaif1tof3 --epochs 1 --single-fold --fold 0 --quick
+
+================================================
+ Deep-2PL Comprehensive Pipeline
+================================================
+
+[INFO] Dataset: fsaif1tof3
+[INFO] Epochs: 1
+[INFO] Mode: Single fold (fold 0)
+[WARNING] Quick mode enabled (for testing)
+
+================================================
+ Phase 1: Training
+================================================
+
+[INFO] Running: python train.py --dataset fsaif1tof3 --epochs 1 --single_fold --fold 0
+2025-07-21 01:26:27,223 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 01:26:27,223 - INFO - Dataset: fsaif1tof3
+2025-07-21 01:26:27,223 - INFO - Fold: 0
+2025-07-21 01:26:27,223 - INFO - Epochs: 1
+2025-07-21 01:26:27,223 - INFO - Batch size: 32
+2025-07-21 01:26:27,223 - INFO - Learning rate: 0.001
+2025-07-21 01:26:27,363 - INFO - Using device: cuda
+2025-07-21 01:26:27,364 - INFO - Loading fsaif1tof3 dataset...
+2025-07-21 01:26:27,549 - INFO - Data: 173/44/93 | Model: 880,651 params | Per-KC: False
+2025-07-21 01:26:28,198 - INFO - Starting training...
+2025-07-21 01:26:34,631 - INFO - Final evaluation on test set...
+2025-07-21 01:26:35,378 - INFO - Test: Loss=0.1687, AUC=0.9445, Acc=0.9065
+2025-07-21 01:26:35,395 - INFO - Training completed!
+2025-07-21 01:26:35,395 - INFO - Best validation AUC: 0.0000
+2025-07-21 01:26:35,395 - INFO - Final test AUC: 0.9445
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_test.csv
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_train0.csv
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_valid0.csv
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_test.csv
+Warning: Failed to load Q-matrix from ./data/fsaif1tof3/conceptname_question_id.csv: invalid literal for int() with base 10: 'question_id'
+
+=== Training Summary (Fold 0) ===
+Dataset: fsaif1tof3
+Best Validation AUC: 0.0000
+Final Test AUC: 0.9445
+[SUCCESS] Training completed successfully
+
+================================================
+ Phase 2: Model Evaluation
+================================================
+
+[WARNING] No trained models found, checking for final models...
+[INFO] Found 1 model(s) for evaluation
+[INFO] Evaluating: final_model_fsaif1tof3_fold0.pth
+2025-07-21 01:26:37,346 - INFO - Using device: cuda
+2025-07-21 01:26:37,346 - INFO - Loading model from save_models/final_model_fsaif1tof3_fold0.pth
+2025-07-21 01:26:37,518 - INFO - Loaded model: fsaif1tof3, 880,651 parameters
+2025-07-21 01:26:37,518 - INFO - Loading fsaif1tof3 dataset...
+2025-07-21 01:26:37,530 - INFO - Evaluating on test set...
+2025-07-21 01:26:39,707 - INFO - === Evaluation Results ===
+2025-07-21 01:26:39,707 - INFO - Dataset: fsaif1tof3
+2025-07-21 01:26:39,707 - INFO - Split: test
+2025-07-21 01:26:39,707 - INFO - Loss: 0.1687
+2025-07-21 01:26:39,707 - INFO - AUC: 0.9445
+2025-07-21 01:26:39,707 - INFO - Accuracy: 0.9065
+2025-07-21 01:26:39,707 - INFO - Samples: 65,100
+2025-07-21 01:26:39,707 - INFO - Questions: 1431
+2025-07-21 01:26:39,707 - INFO - Detailed results saved to: results/test/eval_final_model_fsaif1tof3_fold0_test.json
+Warning: Failed to load Q-matrix from ./data/fsaif1tof3/conceptname_question_id.csv: invalid literal for int() with base 10: 'question_id'
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_train0.csv
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_valid0.csv
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_test.csv
+
+=== Evaluation Summary ===
+Model: final_model_fsaif1tof3_fold0
+Dataset: fsaif1tof3
+Split: test
+Loss: 0.1687
+AUC: 0.9445
+Accuracy: 0.9065
+Samples: 65,100
+[SUCCESS] Evaluation completed: final_model_fsaif1tof3_fold0.pth
+
+================================================
+ Phase 3: Visualization & Metrics
+================================================
+
+[INFO] Generating training metrics...
+Plotting metrics for dataset: fsaif1tof3
+Training curves saved to: results/plots/training_curves_fsaif1tof3_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Training metrics generated
+[INFO] Generating comprehensive plots...
+Plotting metrics for all datasets in results/train
+Processing dataset: statics2011
+Training curves saved to: results/plots/training_curves_statics2011_fold0.png
+Processing dataset: assist2009_updated
+Training curves saved to: results/plots/training_curves_assist2009_updated_fold0.png
+Processing dataset: assist2015
+Training curves saved to: results/plots/training_curves_assist2015_fold0.png
+Processing dataset: assist2017
+Training curves saved to: results/plots/training_curves_assist2017_fold0.png
+Processing dataset: synthetic
+Training curves saved to: results/plots/training_curves_synthetic_fold0.png
+Processing dataset: STATICS
+Training curves saved to: results/plots/training_curves_STATICS_fold0.png
+Processing dataset: assist2009
+Training curves saved to: results/plots/training_curves_assist2009_fold0.png
+Processing dataset: kddcup2010
+Training curves saved to: results/plots/training_curves_kddcup2010_fold0.png
+Processing dataset: fsaif1tof3
+Training curves saved to: results/plots/training_curves_fsaif1tof3_fold0.png
+All plots saved to: results/plots
+[SUCCESS] Comprehensive plots generated
+[INFO] Generating evaluation visualizations (ROC/PR curves)...
+Loading evaluation results from: results/test
+Found results for 1 models
+
+Generating visualizations...
+ROC curves saved to: results/plots/roc_curves_fsaif1tof3.png
+Precision-Recall curves saved to: results/plots/precision_recall_curves_fsaif1tof3.png
+Performance summary saved to: results/plots/performance_summary_fsaif1tof3.png
+
+All visualizations saved to: results/plots
+
+Performance Summary:
+------------------------------------------------------------
+fsaif1tof3_fold0          | AUC: 0.9445 | Acc: 0.9065 | Loss: 0.1687 | Samples: 65100
+[SUCCESS] ROC and Precision-Recall curves generated
+
+================================================
+ Phase 4: Deep Model Visualization
+================================================
+
+[INFO] Generating detailed visualizations with: final_model_fsaif1tof3_fold0.pth
+Warning: Failed to load Q-matrix from ./data/fsaif1tof3/conceptname_question_id.csv: invalid literal for int() with base 10: 'question_id'
+Using dataset-specific seq_len=700 for fsaif1tof3 visualization
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_train0.csv
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_valid0.csv
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_test.csv
+Per-KC check: per_kc_mode=False, has_q_to_kc=True, q_to_kc_len=0
+Skipping per-KC distributions - conditions not met
+Created 3 visualizations:
+  - global_theta_heatmap.png
+  - beta_distribution.png
+  - alpha_distribution.png
+θ: 0.000±0.000, β: 0.000±0.000
+[SUCCESS] Deep model visualizations generated in figs/fsaif1tof3/
+
+================================================
+ Phase 5: Results Summary
+================================================
+
+[SUCCESS] Summary saved to: results/pipeline_summary_fsaif1tof3.txt
+
+================================================
+ Pipeline Completed Successfully!
+================================================
+
+Results Summary:
+   Dataset: fsaif1tof3
+   Models: 1 trained
+   Training: Single fold
+
+Output Locations:
+   Training metrics: results/train/
+   Evaluation: results/test/
+   Plots: results/plots/ (includes ROC/PR curves)
+   Deep visualizations: figs/fsaif1tof3/ (per-KC analysis)
+   IRT parameters: stats/ (theta, alpha, beta from best models)
+   Models: save_models/
+   Summary: results/pipeline_summary_fsaif1tof3.txt
+
+[INFO] Quick Results Preview:
+   Test AUC: 0.9445
+   Test Accuracy: 0.9065
+   Test Loss: 0.1687
+[SUCCESS] All phases completed successfully!
+[INFO] You can now examine the results in the respective directories.
+[WARNING] This was a quick test run. For full results, run without --quick flag.
+[SUCCESS] fsaif1tof3 completed in 31s
+
+--- Generating Comprehensive Comparison ---
+
+
+================================================================================
+COMPREHENSIVE RESULTS COMPARISON
+================================================================================
+
+Results Summary (9 evaluations across 9 datasets):
+--------------------------------------------------------------------------------
+Dataset            AUC (mean±std)  Accuracy   F1       Loss     Folds 
+--------------------------------------------------------------------------------
+model_STATICS      0.9183±nan      0.8893    0.0000   0.2724   1
+model_assist2009   0.9012±nan      0.8179    0.0000   0.3536   1
+model_assist2009_updated 0.9919±nan      0.9786    0.0000   0.0509   1
+model_assist2015   0.9951±nan      0.9862    0.0000   0.0294   1
+model_assist2017   0.6092±nan      0.6293    0.0000   0.6441   1
+model_fsaif1tof3   0.9445±nan      0.9065    0.0000   0.1687   1
+model_kddcup2010   0.7535±nan      0.7852    0.0000   0.4774   1
+model_statics2011  0.6411±nan      0.8406    0.0000   0.5496   1
+model_synthetic    0.6938±nan      0.6548    0.0000   0.6119   1
+
+Best AUC: model_assist2015 (0.9951)
+Worst AUC: model_assist2017 (0.6092)
+
+Detailed results saved to:
+  - results/comprehensive_comparison.csv
+  - results/dataset_summary.csv
+[SUCCESS] Comprehensive comparison generated
+
+================================================================
+ Pipeline Execution Complete!
+================================================================
+
+Execution Summary:
+   Total time: 0h 14m 0s
+   Successful: 9/9 datasets
+   Failed: 0/9 datasets
+
+Successful datasets:
+   - synthetic
+   - assist2009_updated
+   - assist2015
+   - assist2017
+   - assist2009
+   - kddcup2010
+   - STATICS
+   - statics2011
+   - fsaif1tof3
+
+Results Locations:
+   Training metrics: results/train/
+   Evaluations: results/test/
+   Plots: results/plots/
+   Deep visualizations: figs/ (per-dataset per-KC analysis)
+   IRT parameters: stats/ (theta, alpha, beta from best models)
+   Models: save_models/
+   Progress log: logs/run_all_progress_20250721_011259.txt
+   Comparison: results/comprehensive_comparison.csv
+[SUCCESS] All pipeline phases completed!
+[WARNING] This was a quick test run. For full results, run without --quick flag.
+[SUCCESS] All datasets completed successfully!

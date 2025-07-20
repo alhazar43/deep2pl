@@ -1,0 +1,22 @@
+Deep-2PL Pipeline Summary
+========================
+Dataset: fsaif1tof3
+Date: Mon Jul 21 01:26:55 CEST 2025
+Epochs: 1
+Mode: Single fold (0)
+
+Models Trained:
+  - final_model_fsaif1tof3_fold0.pth
+
+Results Location:
+  - Training metrics: results/train/
+  - Evaluation results: results/test/
+  - Plots: results/plots/
+  - Models: save_models/
+
+Dataset Information:
+Loading pre-split data from ./data/fsaif1tof3/fsaif1tof3_test.csv
+  - Questions: 1722
+  - Q-matrix: Yes
+  - Format: Pre-split
+  - Mode: Per-KC

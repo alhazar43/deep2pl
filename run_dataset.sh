@@ -49,19 +49,19 @@ print_header() {
 }
 
 print_success() {
-    echo -e "${GREEN}✓ $1${NC}"
+    echo -e "${GREEN}[SUCCESS] $1${NC}"
 }
 
 print_error() {
-    echo -e "${RED}✗ $1${NC}"
+    echo -e "${RED}[ERROR] $1${NC}"
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠ $1${NC}"
+    echo -e "${YELLOW}[WARNING] $1${NC}"
 }
 
 print_info() {
-    echo -e "${BLUE}ℹ $1${NC}"
+    echo -e "${BLUE}[INFO] $1${NC}"
 }
 
 # Usage function
@@ -194,6 +194,7 @@ fi
 mkdir -p results/{train,valid,test,plots}
 mkdir -p save_models
 mkdir -p logs
+mkdir -p stats
 
 # Phase 1: Training
 print_header "Phase 1: Training"
@@ -293,8 +294,39 @@ if [[ -d "results/test" ]] && [[ $(ls results/test/eval_*${DATASET_NAME}*.json 2
     fi
 fi
 
-# Phase 4: Summary Report
-print_header "Phase 4: Results Summary"
+# Phase 4: Deep Model Visualization
+print_header "Phase 4: Deep Model Visualization"
+
+# Generate detailed per-student and per-KC visualizations using the best model
+if [[ ${#MODELS_FOUND[@]} -gt 0 ]]; then
+    BEST_MODEL="${MODELS_FOUND[0]}"  # Use first found model (best or final)
+    print_info "Generating detailed visualizations with: $(basename $BEST_MODEL)"
+    
+    # Extract config path from model
+    CONFIG_PATH="${BEST_MODEL%.pth}.json"
+    if [[ ! -f "$CONFIG_PATH" ]]; then
+        # Fallback: look for config in save_models directory
+        CONFIG_PATH="save_models/config_${DATASET_NAME}_fold${FOLD_IDX}.json"
+        if [[ ! -f "$CONFIG_PATH" ]] && [[ "$SINGLE_FOLD" != true ]]; then
+            CONFIG_PATH="save_models/config_${DATASET_NAME}_fold0.json"
+        fi
+    fi
+    
+    if [[ -f "$CONFIG_PATH" ]]; then
+        if python visualize.py --checkpoint "$BEST_MODEL" --config "$CONFIG_PATH" --output_dir "figs/${DATASET_NAME}" 2>/dev/null; then
+            print_success "Deep model visualizations generated in figs/${DATASET_NAME}/"
+        else
+            print_warning "Deep model visualization had warnings (this is normal for some datasets)"
+        fi
+    else
+        print_warning "Config file not found for visualization: $CONFIG_PATH"
+    fi
+else
+    print_warning "No models available for visualization"
+fi
+
+# Phase 5: Summary Report
+print_header "Phase 5: Results Summary"
 
 # Create summary
 SUMMARY_FILE="results/pipeline_summary_${DATASET_NAME}.txt"
@@ -349,17 +381,19 @@ print_success "Summary saved to: $SUMMARY_FILE"
 # Display final results
 print_header "Pipeline Completed Successfully!"
 
-echo "📊 Results Summary:"
+echo "Results Summary:"
 echo "   Dataset: $DATASET_NAME"
 echo "   Models: ${#MODELS_FOUND[@]} trained"
 echo "   Training: $(if [[ "$SINGLE_FOLD" == true ]]; then echo "Single fold"; else echo "5-fold CV"; fi)"
 echo ""
-echo "📁 Output Locations:"
-echo "   📈 Training metrics: results/train/"
-echo "   📊 Evaluation: results/test/"
-echo "   📉 Plots: results/plots/ (includes ROC/PR curves)"
-echo "   🤖 Models: save_models/"
-echo "   📄 Summary: $SUMMARY_FILE"
+echo "Output Locations:"
+echo "   Training metrics: results/train/"
+echo "   Evaluation: results/test/"
+echo "   Plots: results/plots/ (includes ROC/PR curves)"
+echo "   Deep visualizations: figs/${DATASET_NAME}/ (per-KC analysis)"
+echo "   IRT parameters: stats/ (theta, alpha, beta from best models)"
+echo "   Models: save_models/"
+echo "   Summary: $SUMMARY_FILE"
 echo ""
 
 # Display some key results if available

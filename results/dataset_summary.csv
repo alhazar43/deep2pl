@@ -1,0 +1,12 @@
+,auc,auc,auc,accuracy,accuracy,loss,f1
+,mean,std,count,mean,std,mean,mean
+dataset,,,,,,,
+model_STATICS,0.9183,,1,0.8893,,0.2724,0.0
+model_assist2009,0.9012,,1,0.8179,,0.3536,0.0
+model_assist2009_updated,0.9919,,1,0.9786,,0.0509,0.0
+model_assist2015,0.9951,,1,0.9862,,0.0294,0.0
+model_assist2017,0.6092,,1,0.6293,,0.6441,0.0
+model_fsaif1tof3,0.9445,,1,0.9065,,0.1687,0.0
+model_kddcup2010,0.7535,,1,0.7852,,0.4774,0.0
+model_statics2011,0.6411,,1,0.8406,,0.5496,0.0
+model_synthetic,0.6938,,1,0.6548,,0.6119,0.0

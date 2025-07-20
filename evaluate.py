@@ -15,7 +15,7 @@ import json
 import argparse
 import logging
 from datetime import datetime
-from tqdm import tqdm
+# tqdm removed for performance
 from sklearn.metrics import roc_auc_score, accuracy_score, precision_recall_curve, roc_curve
 
 from models.model import DeepIRTModel
@@ -167,7 +167,7 @@ def evaluate_model_detailed(model, data_loader, device, desc="Evaluating"):
     all_question_ids = []
     
     with torch.no_grad():
-        for batch in tqdm(data_loader, desc=desc, leave=False):
+        for batch_idx, batch in enumerate(data_loader):
             q_data = batch['q_data'].to(device)
             qa_data = batch['qa_data'].to(device)
             targets = batch['target'].to(device)

@@ -1,0 +1,54 @@
+{
+  "train_losses": [
+    0.5237826351766233
+  ],
+  "valid_losses": [
+    null
+  ],
+  "valid_aucs": [
+    null
+  ],
+  "valid_accs": [
+    null
+  ],
+  "best_valid_auc": 0.0,
+  "test_loss": 0.4774039142272052,
+  "test_auc": 0.7535035371425018,
+  "test_acc": 0.7852416356877323,
+  "config": {
+    "n_questions": 649,
+    "memory_size": 50,
+    "key_dim": 50,
+    "value_dim": 200,
+    "summary_dim": 50,
+    "q_embed_dim": 50,
+    "qa_embed_dim": 200,
+    "ability_scale": 3.0,
+    "use_discrimination": true,
+    "dropout_rate": 0.1,
+    "batch_size": 32,
+    "seq_len": 50,
+    "learning_rate": 0.001,
+    "n_epochs": 1,
+    "max_grad_norm": 5.0,
+    "weight_decay": 1e-05,
+    "data_dir": "./data",
+    "train_file": "train.txt",
+    "test_file": "test.txt",
+    "data_format": "txt",
+    "data_style": "yeung",
+    "dataset_name": "kddcup2010",
+    "k_fold": 5,
+    "fold_idx": 0,
+    "device": "auto",
+    "seed": 42,
+    "save_dir": "save_models",
+    "log_dir": "logs",
+    "save_every": 10,
+    "eval_every": 5,
+    "verbose": true,
+    "tensorboard": true,
+    "q_matrix_path": null,
+    "skill_mapping_path": null
+  }
+}

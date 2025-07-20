@@ -1,0 +1,22 @@
+Deep-2PL Pipeline Summary
+========================
+Dataset: assist2009
+Date: Mon Jul 21 01:24:27 CEST 2025
+Epochs: 1
+Mode: Single fold (0)
+
+Models Trained:
+  - final_model_assist2009_fold0.pth
+
+Results Location:
+  - Training metrics: results/train/
+  - Evaluation results: results/test/
+  - Plots: results/plots/
+  - Models: save_models/
+
+Dataset Information:
+Loading single file data from ./data/assist2009/builder_train.csv and ./data/assist2009/builder_test.csv
+  - Questions: 124
+  - Q-matrix: No
+  - Format: Single-file
+  - Mode: Global
