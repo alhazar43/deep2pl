@@ -140,3 +140,9 @@ tmp/
 profile_training.py
 test_speed.py
 compare_all_results.py
+
+# Results directories (comment out if you want to track results)
+results/
+save_models/
+figs/
+logs/
