@@ -10,13 +10,13 @@ class Config:
         # Model parameters
         self.n_questions = 100
         self.memory_size = 50
-        self.key_memory_state_dim = 50
-        self.value_memory_state_dim = 200
-        self.summary_vector_dim = 50
+        self.key_dim = 50
+        self.value_dim = 200
+        self.summary_dim = 50
         self.q_embed_dim = 50
         self.qa_embed_dim = 200
         self.ability_scale = 3.0
-        self.use_discrimination = False
+        self.use_discrimination = True  # Default to 2PL model
         self.dropout_rate = 0.1
         
         # Training parameters
@@ -88,11 +88,11 @@ def get_config():
                         help='Number of questions in dataset')
     parser.add_argument('--memory_size', type=int, default=None,
                         help='Memory size for DKVMN')
-    parser.add_argument('--key_memory_state_dim', type=int, default=None,
+    parser.add_argument('--key_dim', type=int, default=None,
                         help='Key memory state dimension')
-    parser.add_argument('--value_memory_state_dim', type=int, default=None,
+    parser.add_argument('--value_dim', type=int, default=None,
                         help='Value memory state dimension')
-    parser.add_argument('--summary_vector_dim', type=int, default=None,
+    parser.add_argument('--summary_dim', type=int, default=None,
                         help='Summary vector dimension')
     parser.add_argument('--q_embed_dim', type=int, default=None,
                         help='Question embedding dimension')
@@ -194,9 +194,9 @@ def get_config():
 ASSIST2009_CONFIG = {
     "n_questions": 110,
     "memory_size": 50,
-    "key_memory_state_dim": 50,
-    "value_memory_state_dim": 200,
-    "summary_vector_dim": 50,
+    "key_dim": 50,
+    "value_dim": 200,
+    "summary_dim": 50,
     "batch_size": 32,
     "seq_len": 50,
     "learning_rate": 0.001,
@@ -208,9 +208,9 @@ ASSIST2009_CONFIG = {
 ASSIST2015_CONFIG = {
     "n_questions": 100,
     "memory_size": 50,
-    "key_memory_state_dim": 50,
-    "value_memory_state_dim": 200,
-    "summary_vector_dim": 50,
+    "key_dim": 50,
+    "value_dim": 200,
+    "summary_dim": 50,
     "batch_size": 32,
     "seq_len": 50,
     "learning_rate": 0.001,
@@ -222,9 +222,9 @@ ASSIST2015_CONFIG = {
 SYNTHETIC_CONFIG = {
     "n_questions": 50,
     "memory_size": 20,
-    "key_memory_state_dim": 50,
-    "value_memory_state_dim": 200,
-    "summary_vector_dim": 50,
+    "key_dim": 50,
+    "value_dim": 200,
+    "summary_dim": 50,
     "batch_size": 32,
     "seq_len": 50,
     "learning_rate": 0.001,

@@ -1,17 +1,6 @@
 #!/usr/bin/env python3
-"""
-Visualization Module for Deep Item Response Theory Model
-
-This module provides comprehensive visualization capabilities for Deep-IRT models,
-supporting both global and per-knowledge component tracking modes.
-
-Features:
-- Global theta/beta distribution plots for standard models
-- Per-KC continuous heatmaps for models with Q-matrix support
-- Data persistence and loading capabilities for saved theta/beta parameters
-- Professional visualization output with organized directory structure
-
-Author: Deep-IRT Visualization Suite
+"""Visualization module for Deep-IRT models.
+Supports global theta/beta plots and per-KC heatmaps.
 """
 
 import torch
@@ -27,7 +16,7 @@ import json
 import pickle
 from tqdm import tqdm
 
-from models.irt import DeepIRTModel
+from models.model import DeepIRTModel
 from data.dataloader import create_datasets, create_dataloader
 
 
@@ -53,9 +42,9 @@ def load_model(checkpoint_path, config):
     model = DeepIRTModel(
         n_questions=actual_n_questions,  # Use actual value from checkpoint
         memory_size=config['memory_size'],
-        key_memory_state_dim=config['key_memory_state_dim'],
-        value_memory_state_dim=config['value_memory_state_dim'],
-        summary_vector_dim=config['summary_vector_dim'],
+        key_dim=config.get('key_dim', config.get('key_memory_state_dim', 50)),
+        value_dim=config.get('value_dim', config.get('value_memory_state_dim', 200)),
+        summary_dim=config.get('summary_dim', config.get('summary_vector_dim', 50)),
         q_embed_dim=config['q_embed_dim'],
         qa_embed_dim=config['qa_embed_dim'],
         ability_scale=config['ability_scale'],
@@ -65,38 +54,44 @@ def load_model(checkpoint_path, config):
         skill_mapping_path=config.get('skill_mapping_path')
     )
     
+    # Handle backward compatibility for renamed parameters
+    old_to_new_mapping = {
+        'init_kc_states': 'kc_init',
+        'cross_kc_network.0.weight': 'kc_cross_net.0.weight',
+        'cross_kc_network.0.bias': 'kc_cross_net.0.bias',
+        'cross_kc_network.2.weight': 'kc_cross_net.2.weight',
+        'cross_kc_network.2.bias': 'kc_cross_net.2.bias'
+    }
+    
+    # Rename keys in state_dict if needed
+    for old_key, new_key in old_to_new_mapping.items():
+        if old_key in state_dict and new_key not in state_dict:
+            state_dict[new_key] = state_dict.pop(old_key)
+    
     model.load_state_dict(state_dict)
     model.eval()
     return model
 
 
 def extract_data(model, data_loader, max_students=50, max_timesteps=None):
-    """
-    Extract theta and beta parameters from trained model for visualization.
-    
-    Parameters:
-        model (DeepIRTModel): Trained Deep-IRT model
-        data_loader (DataLoader): Data loader for test dataset
-        max_students (int): Maximum number of students to process
-        max_timesteps (int, optional): Maximum timesteps per student. If None, uses full sequence length
-        
-    Returns:
-        tuple: (global_data, per_kc_data) containing extracted parameters
+    """Extract theta/beta parameters from trained model.
+    Returns: (global_data, per_kc_data) tuple
     """
     model.eval()
     
     global_data = {
         'student_abilities': [],
         'item_difficulties': [],
+        'discrimination_params': [],
         'student_ids': [],
         'timesteps': [],
         'question_ids': []
     }
     
     per_kc_data = {
-        'all_kc_thetas_list': [],
-        'question_sequences': [],
-        'correctness_sequences': [],
+        'kc_thetas': [],
+        'q_seqs': [],
+        'correct_seqs': [],
         'beta_parameters': [],
         'probability_data': []
     }
@@ -122,6 +117,12 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                         global_data['student_ids'].append(batch_idx * batch_size + student_idx)
                         global_data['timesteps'].append(t)
                         global_data['question_ids'].append(q_data[student_idx, t].item())
+                        
+                        # Extract discrimination parameter if available
+                        if hasattr(model, 'discrimination') and model.discrimination is not None:
+                            global_data['discrimination_params'].append(model.discrimination.item())
+                        else:
+                            global_data['discrimination_params'].append(1.0)  # Default 1PL value
             
             # Extract per-knowledge component data if in per-KC mode
             if 'all_kc_thetas' in kc_info:
@@ -132,7 +133,7 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                 for student_idx in range(batch_size):
                     # Extract knowledge component theta evolution
                     student_kc_thetas = kc_info['all_kc_thetas'][student_idx, :seq_len, :].cpu().numpy()
-                    per_kc_data['all_kc_thetas_list'].append(student_kc_thetas)
+                    per_kc_data['kc_thetas'].append(student_kc_thetas)
                     
                     # Extract question sequence and correctness information
                     student_questions = []
@@ -172,8 +173,8 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                         kc_probs = torch.sigmoid(torch.tensor(student_kc_thetas[t, :]) - beta_val).numpy()
                         student_probs.append(kc_probs)
                     
-                    per_kc_data['question_sequences'].append(student_questions)
-                    per_kc_data['correctness_sequences'].append(student_correctness)
+                    per_kc_data['q_seqs'].append(student_questions)
+                    per_kc_data['correct_seqs'].append(student_correctness)
                     per_kc_data['beta_parameters'].append(student_betas)
                     per_kc_data['probability_data'].append(np.array(student_probs))
     
@@ -184,14 +185,14 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
     return global_data, per_kc_data
 
 
-def plot_global_heatmap(data, save_path=None, max_display_timesteps=100):
+def plot_global_heatmap(data, save_path=None, max_steps=100):
     """
     Create global theta heatmap visualization.
     
     Parameters:
         data (dict): Dictionary containing global theta data
         save_path (str, optional): Path to save the visualization
-        max_display_timesteps (int): Maximum timesteps to display in plot (default: 100)
+        max_steps (int): Maximum timesteps to display in plot (default: 100)
     """
     df = pd.DataFrame({
         'Student': data['student_ids'],
@@ -199,9 +200,9 @@ def plot_global_heatmap(data, save_path=None, max_display_timesteps=100):
         'Theta': data['student_abilities']
     })
     
-    # Limit display to max_display_timesteps while keeping full computation info
+    # Limit display to max_steps while keeping full computation info
     max_timestep = df['Timestep'].max()
-    display_timesteps = min(max_timestep, max_display_timesteps - 1)  # -1 because timesteps are 0-indexed
+    display_timesteps = min(max_timestep, max_steps - 1)  # -1 because timesteps are 0-indexed
     
     # Filter data for display
     df_display = df[df['Timestep'] <= display_timesteps]
@@ -253,7 +254,51 @@ def plot_beta_distribution(data, save_path=None):
     plt.close()
 
 
-def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='theta', kc_names=None, save_path=None, max_display_timesteps=100):
+def plot_alpha_distribution(data, save_path=None):
+    """
+    Plot the distribution of discrimination parameters (alpha).
+    
+    Parameters:
+        data (dict): Data dictionary containing 'discrimination_params'
+        save_path (str, optional): Path to save the plot
+    """
+    if 'discrimination_params' not in data or not data['discrimination_params']:
+        print("No discrimination parameters found in data")
+        return
+    
+    plt.figure(figsize=(10, 6))
+    
+    # Filter out default 1.0 values if all are the same (1PL mode)
+    alpha_values = data['discrimination_params']
+    unique_alphas = set(alpha_values)
+    
+    if len(unique_alphas) == 1 and 1.0 in unique_alphas:
+        plt.text(0.5, 0.5, 'Model trained in 1PL mode\n(no discrimination parameters)', 
+                ha='center', va='center', transform=plt.gca().transAxes, fontsize=14)
+        plt.xlim(0, 2)
+        plt.ylim(0, 1)
+    else:
+        plt.hist(alpha_values, bins=50, alpha=0.7, edgecolor='black', color='purple')
+        mean_alpha = np.mean(alpha_values)
+        std_alpha = np.std(alpha_values)
+        plt.axvline(mean_alpha, color='red', linestyle='--', label=f'Mean: {mean_alpha:.3f}')
+        plt.axvline(mean_alpha + std_alpha, color='orange', linestyle='--', alpha=0.7, label=f'±1 STD: {std_alpha:.3f}')
+        plt.axvline(mean_alpha - std_alpha, color='orange', linestyle='--', alpha=0.7)
+        plt.legend()
+    
+    plt.xlabel('Discrimination Parameter (α)')
+    plt.ylabel('Frequency')
+    plt.title('Distribution of Item Discrimination (α)\nDeep-2PL Model')
+    plt.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+
+def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='theta', kc_names=None, save_path=None, max_steps=100):
     """
     Create per-knowledge component heatmap visualization.
     
@@ -265,7 +310,7 @@ def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='
         mode (str): Visualization mode ('theta' or 'probability')
         kc_names (dict, optional): Mapping of KC IDs to names
         save_path (str, optional): Path to save the visualization
-        max_display_timesteps (int): Maximum timesteps to display in plot (default: 100)
+        max_steps (int): Maximum timesteps to display in plot (default: 100)
     """
     if student_idx >= len(kc_thetas):
         student_idx = 0
@@ -273,8 +318,8 @@ def plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx=0, mode='
     data = kc_thetas[student_idx]
     n_timesteps, _ = data.shape
     
-    # Limit display to max_display_timesteps while keeping full computation info
-    display_timesteps = min(n_timesteps, max_display_timesteps)
+    # Limit display to max_steps while keeping full computation info
+    display_timesteps = min(n_timesteps, max_steps)
     display_data = data[:display_timesteps, :]
     
     # Select knowledge components with highest variance for visualization (using full data)
@@ -385,7 +430,7 @@ def load_data(filepath):
     return None
 
 
-def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None, max_display_timesteps=100):
+def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None, max_steps=100):
     """
     Create visualizations from previously saved data without model inference.
     
@@ -417,21 +462,21 @@ def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None,
     # Generate per-knowledge component visualizations
     if 'per_kc_data' in data:
         per_kc = data['per_kc_data']
-        kc_thetas = per_kc['all_kc_thetas_list']
-        questions = per_kc['question_sequences']
-        correctness = per_kc['correctness_sequences']
+        kc_thetas = per_kc['kc_thetas']
+        questions = per_kc['q_seqs']
+        correctness = per_kc['correct_seqs']
         probabilities = per_kc.get('probability_data', [])
         
         if kc_thetas:
             # Generate theta heatmap visualization
             theta_path = os.path.join(output_dir, f"per_kc_theta_student_{student_idx}.png")
-            plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx, 'theta', None, theta_path, max_display_timesteps)
+            plot_per_kc_heatmap(kc_thetas, questions, correctness, student_idx, 'theta', None, theta_path, max_steps)
             created_files.append(f"per_kc_theta_student_{student_idx}.png")
             
             # Generate probability heatmap visualization
             if probabilities:
                 prob_path = os.path.join(output_dir, f"per_kc_probability_student_{student_idx}.png")
-                plot_per_kc_heatmap(probabilities, questions, correctness, student_idx, 'probability', None, prob_path, max_display_timesteps)
+                plot_per_kc_heatmap(probabilities, questions, correctness, student_idx, 'probability', None, prob_path, max_steps)
                 created_files.append(f"per_kc_probability_student_{student_idx}.png")
     
     # Generate global visualizations
@@ -440,13 +485,18 @@ def visualize_from_data(data_path, output_dir, student_idx=0, dataset_name=None,
         
         # Generate global theta heatmap
         global_path = os.path.join(output_dir, "global_theta_heatmap.png")
-        plot_global_heatmap(global_data, global_path, max_display_timesteps)
+        plot_global_heatmap(global_data, global_path, max_steps)
         created_files.append("global_theta_heatmap.png")
         
         # Generate beta distribution plot
         beta_path = os.path.join(output_dir, "beta_distribution.png")
         plot_beta_distribution(global_data, beta_path)
         created_files.append("beta_distribution.png")
+        
+        # Generate alpha distribution plot
+        alpha_path = os.path.join(output_dir, "alpha_distribution.png")
+        plot_alpha_distribution(global_data, alpha_path)
+        created_files.append("alpha_distribution.png")
     
     print(f"Created {len(created_files)} visualizations:")
     for file in created_files:
@@ -474,7 +524,7 @@ def main():
     
     # Handle visualization from saved data
     if args.load_data:
-        return visualize_from_data(args.load_data, args.output_dir, args.student_idx, max_display_timesteps=args.max_timesteps)
+        return visualize_from_data(args.load_data, args.output_dir, args.student_idx, max_steps=args.max_timesteps)
     
     # Handle model-based visualization
     if not args.checkpoint or not args.config:
@@ -539,16 +589,21 @@ def main():
         beta_path = os.path.join(args.output_dir, "beta_distribution.png")
         plot_beta_distribution(global_data, beta_path)
         created_files.append("beta_distribution.png")
+        
+        # Generate alpha distribution plot
+        alpha_path = os.path.join(args.output_dir, "alpha_distribution.png")
+        plot_alpha_distribution(global_data, alpha_path)
+        created_files.append("alpha_distribution.png")
     
     # Generate per-knowledge component visualizations
-    if model.per_kc_mode and per_kc_data['all_kc_thetas_list']:
+    if model.per_kc_mode and per_kc_data['kc_thetas']:
         data_to_save['per_kc_data'] = per_kc_data
         
         theta_path = os.path.join(args.output_dir, f"per_kc_theta_student_{args.student_idx}.png")
         plot_per_kc_heatmap(
-            per_kc_data['all_kc_thetas_list'],
-            per_kc_data['question_sequences'],
-            per_kc_data['correctness_sequences'],
+            per_kc_data['kc_thetas'],
+            per_kc_data['q_seqs'],
+            per_kc_data['correct_seqs'],
             args.student_idx, 'theta', model.kc_names, theta_path, args.max_timesteps
         )
         created_files.append(f"per_kc_theta_student_{args.student_idx}.png")
@@ -557,8 +612,8 @@ def main():
             prob_path = os.path.join(args.output_dir, f"per_kc_probability_student_{args.student_idx}.png")
             plot_per_kc_heatmap(
                 per_kc_data['probability_data'],
-                per_kc_data['question_sequences'],
-                per_kc_data['correctness_sequences'],
+                per_kc_data['q_seqs'],
+                per_kc_data['correct_seqs'],
                 args.student_idx, 'probability', model.kc_names, prob_path, args.max_timesteps
             )
             created_files.append(f"per_kc_probability_student_{args.student_idx}.png")

@@ -1,12 +1,8 @@
-from .irt import DeepIRTModel
-from .model import StudentAbilityNetwork, ItemDifficultyNetwork, IRTPredictor
+from .model import DeepIRTModel
 from .memory import DKVMN, MemoryHeadGroup
 
 __all__ = [
     'DeepIRTModel', 
-    'StudentAbilityNetwork', 
-    'ItemDifficultyNetwork', 
-    'IRTPredictor',
     'DKVMN', 
     'MemoryHeadGroup'
 ]

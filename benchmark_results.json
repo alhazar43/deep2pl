@@ -1,0 +1,30 @@
+{
+  "assist2015": {
+    "Original": {
+      "success": false,
+      "error": "'str' object has no attribute 'to'"
+    },
+    "Fixed": {
+      "success": false,
+      "error": "'str' object has no attribute 'to'"
+    },
+    "Simple": {
+      "success": false,
+      "error": "'str' object has no attribute 'to'"
+    }
+  },
+  "synthetic": {
+    "Original": {
+      "success": false,
+      "error": "'str' object has no attribute 'to'"
+    },
+    "Fixed": {
+      "success": false,
+      "error": "'str' object has no attribute 'to'"
+    },
+    "Simple": {
+      "success": false,
+      "error": "'str' object has no attribute 'to'"
+    }
+  }
+}

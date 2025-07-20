@@ -1,0 +1,26 @@
+Deep-2PL Pipeline Summary
+========================
+Dataset: synthetic
+Date: Sun Jul 20 21:44:23 CEST 2025
+Epochs: 30
+Mode: 5-fold CV
+
+Models Trained:
+  - best_model_synthetic_fold0.pth
+  - best_model_synthetic_fold1.pth
+  - best_model_synthetic_fold2.pth
+  - best_model_synthetic_fold3.pth
+  - best_model_synthetic_fold4.pth
+
+Results Location:
+  - Training metrics: results/train/
+  - Evaluation results: results/test/
+  - Plots: results/plots/
+  - Models: save_models/
+
+Dataset Information:
+Loading single file data from ./data/synthetic/synthetic_train.txt and ./data/synthetic/synthetic_test.txt
+  - Questions: 50
+  - Q-matrix: No
+  - Format: Single-file
+  - Mode: Global

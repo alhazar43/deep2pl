@@ -1,331 +1,568 @@
 #!/usr/bin/env python3
 """
-Main Pipeline Script for Deep Item Response Theory Model
+Comprehensive Deep-2PL Pipeline Script
 
-This module provides a unified interface for training Deep-IRT models and 
-generating comprehensive visualizations. It supports both individual component 
-execution and complete pipeline workflows.
+This script handles training, testing, evaluation, and visualization for all datasets.
+It performs 5-fold cross validation, evaluates all models, extracts comprehensive
+statistics, and generates visualizations.
 
 Features:
-- Unified training and visualization pipeline
-- Support for multiple datasets and data formats
-- Automatic checkpoint management
-- Organized output structure with figs/dataset_name directories
-- Data persistence for efficient re-visualization
-
-Author: Deep-IRT Pipeline System
+- Complete 5-fold cross validation training for all datasets
+- Comprehensive model evaluation on test sets
+- Statistical extraction (theta, alpha, beta parameters)
+- Training metrics visualization
+- Results organization in structured directories
 """
 
 import os
 import sys
+import json
 import argparse
 import subprocess
+import pickle
+import numpy as np
 from datetime import datetime
+from pathlib import Path
 
 
-def run_command(cmd, desc="Running command", show_progress=False):
-    """
-    Execute subprocess command with comprehensive error handling.
-    
-    Parameters:
-        cmd (list): Command and arguments to execute
-        desc (str): Description of the command being run
-        show_progress (bool): Whether to show real-time output
-        
-    Returns:
-        tuple: (success_status, output) where success_status is boolean
-    """
-    print(f"{desc}...")
+def run_command(cmd, desc="Running command", show_progress=True):
+    """Execute subprocess command with error handling."""
+    print(f"\n{desc}...")
     
     if show_progress:
-        # Don't capture output to show real-time progress
         result = subprocess.run(cmd)
         return result.returncode == 0, ""
     else:
-        # Capture output for error handling
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
         if result.returncode != 0:
             print(f"Error: {desc} failed")
             if result.stderr:
                 print(result.stderr)
             return False, result.stdout
-        
         return True, result.stdout
 
 
-def find_checkpoint_files(data_style, dataset):
+def get_dataset_configs():
+    """Get all available dataset configurations."""
+    return {
+        'assist2009_updated': {'epochs': 20, 'batch_size': 32},
+        'STATICS': {'epochs': 20, 'batch_size': 16},
+        'assist2015': {'epochs': 20, 'batch_size': 32},
+        'fsaif1tof3': {'epochs': 20, 'batch_size': 32},
+        'synthetic': {'epochs': 20, 'batch_size': 32},
+        'assist2009': {'epochs': 20, 'batch_size': 32},
+        'assist2017': {'epochs': 20, 'batch_size': 32},
+        'statics2011': {'epochs': 20, 'batch_size': 32},
+        'kddcup2010': {'epochs': 20, 'batch_size': 32}
+    }
+
+
+def train_all_models(datasets=None, single_fold=False, fold_idx=0):
     """
-    Locate checkpoint and configuration files for a given dataset.
+    Train models for specified datasets.
     
-    Parameters:
-        data_style (str): Data format style ('yeung' or 'torch')
-        dataset (str): Dataset name
-        
+    Args:
+        datasets: List of dataset names (None for all)
+        single_fold: If True, train only specified fold
+        fold_idx: Fold index to train (0-4)
+    
     Returns:
-        tuple: (checkpoint_path, config_path) with file paths or None if not found
+        dict: Training results summary
     """
-    checkpoint_dir = f"checkpoints_{data_style}"
+    configs = get_dataset_configs()
+    results = {}
     
-    # Search for checkpoint files in order of preference
-    checkpoints = [
-        f"best_model_{dataset}.pth",
-        f"final_model_{dataset}.pth"
-    ]
+    # Filter datasets
+    if datasets is None:
+        datasets = list(configs.keys())
     
-    checkpoint_path = None
-    for ckpt in checkpoints:
-        path = os.path.join(checkpoint_dir, ckpt)
-        if os.path.exists(path):
-            checkpoint_path = path
-            break
-    
-    config_path = os.path.join(checkpoint_dir, f"config_{dataset}.json")
-    
-    return checkpoint_path, config_path
-
-
-def train_model(args):
-    """
-    Execute model training with specified configuration.
-    
-    Parameters:
-        args (Namespace): Parsed command-line arguments containing training parameters
+    for dataset in datasets:
+        if dataset not in configs:
+            continue
+            
+        print(f"\n{'='*60}")
+        print(f"Training {dataset}")
+        print(f"{'='*60}")
         
-    Returns:
-        tuple: (success_status, checkpoint_path, config_path)
-    """
-    cmd = [
-        sys.executable, "train.py",
-        "--dataset", args.dataset,
-        "--data_style", args.data_style,
-        "--fold", str(args.fold)
-    ]
-    
-    # Append optional training parameters if specified
-    if args.epochs:
-        cmd.extend(["--epochs", str(args.epochs)])
-    if args.batch_size:
-        cmd.extend(["--batch_size", str(args.batch_size)])
-    if args.learning_rate:
-        cmd.extend(["--learning_rate", str(args.learning_rate)])
-    
-    success, output = run_command(cmd, f"Training {args.dataset} ({args.data_style})", show_progress=True)
-    
-    if success:
-        checkpoint_path, config_path = find_checkpoint_files(args.data_style, args.dataset)
-        if checkpoint_path and os.path.exists(config_path):
-            print("Training completed successfully")
-            return True, checkpoint_path, config_path
-    
-    print("Training failed or files not found")
-    return False, None, None
-
-
-def create_visualizations(checkpoint_path, config_path, output_dir, student_idx=0, save_data_path=None):
-    """
-    Generate comprehensive visualizations from trained model.
-    
-    Parameters:
-        checkpoint_path (str): Path to model checkpoint
-        config_path (str): Path to model configuration file
-        output_dir (str): Directory for saving visualizations
-        student_idx (int): Student index for per-KC visualizations
-        save_data_path (str, optional): Path to save extracted data
+        config = configs[dataset]
         
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    cmd = [
-        sys.executable, "visualize.py",
-        "--checkpoint", checkpoint_path,
-        "--config", config_path,
-        "--output_dir", output_dir,
-        "--student_idx", str(student_idx)
-    ]
-    
-    if save_data_path:
-        cmd.extend(["--save_data", save_data_path])
-    
-    success, output = run_command(cmd, "Generating visualizations")
-    
-    if success:
-        print(output)
-    
-    return success
-
-
-def create_visualizations_from_data(data_path, output_dir, student_idx=0):
-    """
-    Generate visualizations from previously saved data without model inference.
-    
-    Parameters:
-        data_path (str): Path to saved data pickle file
-        output_dir (str): Directory for saving visualizations
-        student_idx (int): Student index for per-KC visualizations
+        # Build training command
+        cmd = [
+            sys.executable, "train.py",
+            "--dataset", dataset,
+            "--epochs", str(config['epochs']),
+            "--batch_size", str(config['batch_size'])
+        ]
         
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    cmd = [
-        sys.executable, "visualize.py",
-        "--load_data", data_path,
-        "--output_dir", output_dir,
-        "--student_idx", str(student_idx)
-    ]
-    
-    success, output = run_command(cmd, "Generating visualizations from saved data")
-    
-    if success:
-        print(output)
-    
-    return success
-
-
-def get_default_epochs(dataset, data_style):
-    """
-    Determine appropriate default epoch count based on dataset and data style.
-    
-    Parameters:
-        dataset (str): Dataset name
-        data_style (str): Data format style
+        if single_fold:
+            cmd.extend(["--fold", str(fold_idx), "--single_fold"])
         
-    Returns:
-        int: Recommended number of training epochs
+        # Execute training
+        success, output = run_command(
+            cmd, 
+            f"Training {dataset}" + 
+            (f" fold {fold_idx}" if single_fold else " all folds"),
+            show_progress=True
+        )
+        
+        results[dataset] = {
+            'dataset': dataset,
+            'success': success,
+            'single_fold': single_fold,
+            'fold_idx': fold_idx if single_fold else None,
+            'config': config
+        }
+        
+        if success:
+            print(f"✓ Training completed for {dataset}")
+        else:
+            print(f"✗ Training failed for {dataset}")
+    
+    return results
+
+
+def evaluate_all_models(datasets=None, splits=['test']):
     """
-    if dataset == "STATICS" and data_style == "yeung":
-        return 20
-    elif data_style == "torch":
-        return 25
-    else:
-        return 20
+    Evaluate all trained models.
+    
+    Args:
+        datasets: List of dataset names (None for all)
+        splits: List of splits to evaluate on
+    
+    Returns:
+        dict: Evaluation results
+    """
+    save_models_dir = Path("save_models")
+    if not save_models_dir.exists():
+        print("No save_models directory found. Run training first.")
+        return {}
+    
+    # Find all available models
+    model_files = list(save_models_dir.glob("best_model_*.pth"))
+    results = {}
+    
+    for model_file in model_files:
+        # Parse model info from filename
+        filename = model_file.stem
+        if "fold" in filename:
+            parts = filename.replace("best_model_", "").split("_fold")
+            dataset = parts[0]
+            fold = int(parts[1])
+        else:
+            dataset = filename.replace("best_model_", "")
+            fold = None
+        
+        # Skip if not in requested datasets
+        if datasets and dataset not in datasets:
+            continue
+        
+        # Determine data style from config file
+        config_pattern = f"config_{dataset}" + (f"_fold{fold}" if fold is not None else "") + ".json"
+        config_file = save_models_dir / config_pattern
+        
+        if not config_file.exists():
+            print(f"Config file not found for {model_file}")
+            continue
+        
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        
+        print(f"\nEvaluating {dataset}" + 
+              (f" fold {fold}" if fold is not None else ""))
+        
+        for split in splits:
+            cmd = [
+                sys.executable, "evaluate.py",
+                "--model_path", str(model_file),
+                "--split", split
+            ]
+            
+            if fold is not None:
+                cmd.extend(["--fold", str(fold)])
+            
+            success, output = run_command(
+                cmd,
+                f"Evaluating {dataset} on {split}",
+                show_progress=False
+            )
+            
+            key = f"{dataset}" + (f"_fold{fold}" if fold is not None else "")
+            if key not in results:
+                results[key] = {}
+            
+            results[key][split] = {
+                'success': success,
+                'model_file': str(model_file),
+                'config_file': str(config_file)
+            }
+    
+    return results
+
+
+def extract_model_statistics(datasets=None):
+    """
+    Extract comprehensive statistics from trained models.
+    
+    Args:
+        datasets: List of dataset names (None for all)
+    
+    Returns:
+        dict: Extracted statistics
+    """
+    import torch
+    from models.model import DeepIRTModel
+    from data.dataloader import create_datasets, create_dataloader
+    
+    save_models_dir = Path("save_models")
+    stats_dir = Path("stats")
+    stats_dir.mkdir(exist_ok=True)
+    
+    model_files = list(save_models_dir.glob("best_model_*.pth"))
+    all_stats = {}
+    
+    for model_file in model_files:
+        # Parse model info
+        filename = model_file.stem
+        if "fold" in filename:
+            parts = filename.replace("best_model_", "").split("_fold")
+            dataset = parts[0]
+            fold = int(parts[1])
+        else:
+            dataset = filename.replace("best_model_", "")
+            fold = None
+        
+        if datasets and dataset not in datasets:
+            continue
+        
+        # Load config
+        config_pattern = f"config_{dataset}" + (f"_fold{fold}" if fold is not None else "") + ".json"
+        config_file = save_models_dir / config_pattern
+        
+        if not config_file.exists():
+            continue
+        
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        
+        print(f"\nExtracting statistics for {dataset}" +
+              (f" fold {fold}" if fold is not None else ""))
+        
+        try:
+            # Load model
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            checkpoint = torch.load(model_file, map_location=device, weights_only=False)
+            state_dict = checkpoint.get('model_state_dict', checkpoint)
+            
+            # Get actual n_questions from checkpoint
+            actual_n_questions = state_dict['q_embed.weight'].shape[0] - 1
+            
+            model = DeepIRTModel(
+                n_questions=actual_n_questions,
+                memory_size=config['memory_size'],
+                key_dim=config.get('key_dim', 50),
+                value_dim=config.get('value_dim', 200),
+                summary_dim=config.get('summary_dim', 50),
+                q_embed_dim=config['q_embed_dim'],
+                qa_embed_dim=config['qa_embed_dim'],
+                ability_scale=config['ability_scale'],
+                use_discrimination=config['use_discrimination'],
+                dropout_rate=config['dropout_rate'],
+                q_matrix_path=config.get('q_matrix_path'),
+                skill_mapping_path=config.get('skill_mapping_path')
+            ).to(device)
+            
+            model.load_state_dict(state_dict)
+            model.eval()
+            
+            # Create test dataset
+            _, _, test_dataset = create_datasets(
+                data_dir=config['data_dir'],
+                dataset_name=config['dataset_name'],
+                seq_len=config['seq_len'],
+                n_questions=config['n_questions'],
+                k_fold=config['k_fold'],
+                fold_idx=fold or 0
+            )
+            
+            test_loader = create_dataloader(test_dataset, batch_size=1, shuffle=False)
+            
+            # Extract statistics
+            stats = {
+                'dataset': dataset,
+                'fold': fold,
+                'model_info': {
+                    'n_questions': actual_n_questions,
+                    'n_parameters': sum(p.numel() for p in model.parameters()),
+                    'per_kc_mode': model.per_kc_mode,
+                    'use_discrimination': config['use_discrimination'],
+                    'n_kcs': getattr(model, 'n_kcs', None)
+                },
+                'theta_stats': [],
+                'beta_stats': [],
+                'alpha_stats': [],
+                'kc_theta_stats': [] if model.per_kc_mode else None
+            }
+            
+            with torch.no_grad():
+                for batch_idx, batch in enumerate(test_loader):
+                    if batch_idx >= 50:  # Limit to 50 students for statistics
+                        break
+                    
+                    q_data = batch['q_data'].to(device)
+                    qa_data = batch['qa_data'].to(device)
+                    
+                    predictions, student_abilities, item_difficulties, z_values, kc_info = model(q_data, qa_data)
+                    
+                    # Extract theta (student abilities)
+                    valid_mask = q_data > 0
+                    if valid_mask.any():
+                        valid_thetas = student_abilities[valid_mask].cpu().numpy()
+                        stats['theta_stats'].extend(valid_thetas.tolist())
+                        
+                        # Extract beta (item difficulties)
+                        valid_betas = item_difficulties[valid_mask].cpu().numpy()
+                        stats['beta_stats'].extend(valid_betas.tolist())
+                        
+                        # Extract alpha (discrimination) if available
+                        if hasattr(model, 'discrimination') and model.discrimination is not None:
+                            alpha_val = model.discrimination.item()
+                            stats['alpha_stats'].extend([alpha_val] * len(valid_thetas))
+                        else:
+                            stats['alpha_stats'].extend([1.0] * len(valid_thetas))
+                    
+                    # Extract per-KC statistics if available
+                    if model.per_kc_mode and 'all_kc_thetas' in kc_info:
+                        kc_thetas = kc_info['all_kc_thetas'][0].cpu().numpy()  # First student
+                        seq_len, n_kcs = kc_thetas.shape
+                        for t in range(seq_len):
+                            if q_data[0, t].item() > 0:  # Valid timestep
+                                stats['kc_theta_stats'].append(kc_thetas[t].tolist())
+            
+            # Calculate summary statistics
+            if stats['theta_stats']:
+                stats['theta_summary'] = {
+                    'mean': float(np.mean(stats['theta_stats'])),
+                    'std': float(np.std(stats['theta_stats'])),
+                    'min': float(np.min(stats['theta_stats'])),
+                    'max': float(np.max(stats['theta_stats']))
+                }
+            
+            if stats['beta_stats']:
+                stats['beta_summary'] = {
+                    'mean': float(np.mean(stats['beta_stats'])),
+                    'std': float(np.std(stats['beta_stats'])),
+                    'min': float(np.min(stats['beta_stats'])),
+                    'max': float(np.max(stats['beta_stats']))
+                }
+            
+            if stats['alpha_stats']:
+                unique_alphas = list(set(stats['alpha_stats']))
+                stats['alpha_summary'] = {
+                    'mean': float(np.mean(stats['alpha_stats'])),
+                    'std': float(np.std(stats['alpha_stats'])),
+                    'unique_values': unique_alphas,
+                    'is_constant': len(unique_alphas) == 1
+                }
+            
+            # Save statistics
+            stats_filename = f"saved_stats_{dataset}" + (f"_fold{fold}" if fold is not None else "") + ".pkl"
+            stats_path = stats_dir / stats_filename
+            
+            with open(stats_path, 'wb') as f:
+                pickle.dump(stats, f)
+            
+            print(f"Statistics saved to {stats_path}")
+            
+            key = f"{dataset}" + (f"_fold{fold}" if fold is not None else "")
+            all_stats[key] = stats
+            
+        except Exception as e:
+            print(f"Error extracting statistics for {dataset}: {e}")
+            continue
+    
+    return all_stats
+
+
+def generate_all_visualizations(datasets=None):
+    """Generate training metrics and evaluation visualizations."""
+    
+    # Generate training metrics plots
+    print("\nGenerating training metrics visualizations...")
+    cmd = [sys.executable, "plot_metrics.py", "--all", "--results_dir", "results/train", "--output_dir", "results/plots"]
+    run_command(cmd, "Generating training metrics plots", show_progress=False)
+    
+    # Generate evaluation visualizations for ROC curves
+    print("\nGenerating evaluation visualizations...")
+    eval_results_dir = Path("results/test")
+    if eval_results_dir.exists():
+        eval_files = list(eval_results_dir.glob("eval_*.json"))
+        if eval_files:
+            datasets_found = set()
+            for eval_file in eval_files:
+                for dataset in ['STATICS', 'assist2015', 'assist2009_updated', 'fsaif1tof3', 'synthetic', 'assist2009']:
+                    if dataset in eval_file.name:
+                        datasets_found.add(dataset)
+            
+            for dataset in datasets_found:
+                dataset_files = [str(f) for f in eval_files if dataset in f.name]
+                if dataset_files:
+                    cmd = [
+                        sys.executable, "plot_metrics.py",
+                        "--eval_results_dir", str(eval_results_dir),
+                        "--dataset", dataset,
+                        "--output_dir", "results/plots"
+                    ]
+                    run_command(cmd, f"Generating ROC curves for {dataset}", show_progress=False)
+
+
+def create_summary_report(training_results, evaluation_results, statistics):
+    """Create comprehensive summary report."""
+    results_dir = Path("results")
+    results_dir.mkdir(exist_ok=True)
+    
+    summary = {
+        'timestamp': datetime.now().isoformat(),
+        'training_summary': {
+            'total_models': len(training_results),
+            'successful_trainings': sum(1 for r in training_results.values() if r['success']),
+            'failed_trainings': sum(1 for r in training_results.values() if not r['success']),
+            'details': training_results
+        },
+        'evaluation_summary': {
+            'total_evaluations': len(evaluation_results),
+            'details': evaluation_results
+        },
+        'statistics_summary': {
+            'total_models_analyzed': len(statistics),
+            'details': {}
+        }
+    }
+    
+    # Add statistics summary
+    for key, stats in statistics.items():
+        summary['statistics_summary']['details'][key] = {
+            'dataset': stats['dataset'],
+            'fold': stats['fold'],
+            'model_info': stats['model_info'],
+            'theta_summary': stats.get('theta_summary', {}),
+            'beta_summary': stats.get('beta_summary', {}),
+            'alpha_summary': stats.get('alpha_summary', {})
+        }
+    
+    # Save summary report
+    summary_path = results_dir / "pipeline_summary.json"
+    with open(summary_path, 'w') as f:
+        json.dump(summary, f, indent=2)
+    
+    print(f"\nSummary report saved to {summary_path}")
+    
+    # Print brief summary
+    print(f"\n{'='*60}")
+    print("PIPELINE SUMMARY")
+    print(f"{'='*60}")
+    print(f"Training: {summary['training_summary']['successful_trainings']}/{summary['training_summary']['total_models']} successful")
+    print(f"Evaluation: {len(evaluation_results)} models evaluated")
+    print(f"Statistics: {len(statistics)} models analyzed")
+    print(f"Results saved in: results/")
+    print(f"{'='*60}")
 
 
 def main():
-    """
-    Main pipeline function coordinating training and visualization workflows.
-    
-    Handles command-line argument parsing, validates inputs, and orchestrates
-    the complete Deep-IRT pipeline including training, visualization, and
-    data persistence.
-    
-    Returns:
-        int: Exit code (0 for success, 1 for failure)
-    """
+    """Main pipeline function."""
     parser = argparse.ArgumentParser(
-        description='Deep-IRT Training + Visualization Pipeline',
+        description='Comprehensive Deep-2PL Pipeline: Training, Testing, and Visualization',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Quick STATICS training with per-KC mode
-  python main.py --dataset STATICS --data_style yeung --epochs 5
+  # Run complete pipeline for all datasets
+  python main.py --all
 
-  # Standard assist2015 training
-  python main.py --dataset assist2015 --data_style torch --epochs 25
+  # Run pipeline for specific datasets
+  python main.py --datasets STATICS assist2015
 
-  # Visualization only from saved data
-  python main.py --viz_only --load_data saved_data.pkl
+  # Train and evaluate single fold
+  python main.py --datasets STATICS --single_fold --fold 0
+
+  # Skip training, only evaluate and visualize
+  python main.py --skip_training --datasets STATICS
         """
     )
     
-    # Define required command-line arguments
-    parser.add_argument('--dataset', type=str, 
-                        choices=['assist2009_updated', 'assist2015', 'STATICS', 'assist2009', 'fsaif1tof3', 'synthetic'],
-                        help='Dataset name')
-    parser.add_argument('--data_style', type=str, 
-                        choices=['yeung', 'torch'],
-                        help='Data format style')
+    # Dataset selection
+    parser.add_argument('--all', action='store_true', help='Run pipeline for all available datasets')
+    parser.add_argument('--datasets', nargs='+', 
+                       choices=['assist2009_updated', 'assist2015', 'STATICS', 'assist2009', 'fsaif1tof3', 'synthetic',
+                               'assist2017', 'statics2011', 'kddcup2010'],
+                       help='Specific datasets to process')
     
-    # Define training configuration arguments
-    parser.add_argument('--fold', type=int, default=0, help='Fold index (0-4)')
-    parser.add_argument('--epochs', type=int, help='Number of epochs')
-    parser.add_argument('--batch_size', type=int, help='Batch size')
-    parser.add_argument('--learning_rate', type=float, help='Learning rate')
+    # Training options
+    parser.add_argument('--single_fold', action='store_true', help='Train only single fold instead of 5-fold CV')
+    parser.add_argument('--fold', type=int, default=0, help='Fold index for single fold training (0-4)')
     
-    # Define visualization configuration arguments
-    parser.add_argument('--student_idx', type=int, default=0, help='Student index for per-KC plots')
-    parser.add_argument('--output_dir', type=str, help='Output directory')
-    parser.add_argument('--save_data', type=str, help='Save extracted data file')
-    parser.add_argument('--load_data', type=str, help='Load saved data file')
-    
-    # Define pipeline control arguments
-    parser.add_argument('--skip_training', action='store_true', help='Skip training')
-    parser.add_argument('--skip_visualization', action='store_true', help='Skip visualization')
-    parser.add_argument('--viz_only', action='store_true', help='Only run visualization from saved data')
+    # Pipeline control
+    parser.add_argument('--skip_training', action='store_true', help='Skip training phase')
+    parser.add_argument('--skip_evaluation', action='store_true', help='Skip evaluation phase')
+    parser.add_argument('--skip_statistics', action='store_true', help='Skip statistics extraction')
+    parser.add_argument('--skip_visualization', action='store_true', help='Skip visualization generation')
     
     args = parser.parse_args()
     
-    # Validate command-line arguments
+    # Validate arguments
     if args.fold < 0 or args.fold >= 5:
         print("Error: Fold index must be between 0 and 4")
         return 1
     
-    # Handle visualization-only workflow
-    if args.viz_only:
-        if not args.load_data:
-            print("Error: --viz_only requires --load_data")
-            return 1
-        
-        output_dir = args.output_dir or os.path.join('figs', 'saved_data_viz')
-        success = create_visualizations_from_data(args.load_data, output_dir, args.student_idx)
-        return 0 if success else 1
+    # Determine datasets to process
+    datasets = None
     
-    # Handle standard pipeline workflow
-    if not args.dataset or not args.data_style:
-        print("Error: --dataset and --data_style are required")
+    if args.all:
+        datasets = None  # Process all available
+    else:
+        datasets = args.datasets
+    
+    if not args.all and not datasets:
+        print("Error: Must specify --all or --datasets")
         return 1
     
-    # Configure default parameters
-    if not args.epochs:
-        args.epochs = get_default_epochs(args.dataset, args.data_style)
+    print(f"{'='*60}")
+    print("COMPREHENSIVE DEEP-2PL PIPELINE")
+    print(f"{'='*60}")
+    print(f"Datasets: {datasets or 'all available'}")
+    print(f"Training mode: {'Single fold' if args.single_fold else '5-fold CV'}")
+    if args.single_fold:
+        print(f"Fold: {args.fold}")
+    print(f"{'='*60}")
     
-    if not args.output_dir:
-        args.output_dir = os.path.join('figs', args.dataset)
+    # Initialize results
+    training_results = {}
+    evaluation_results = {}
+    statistics = {}
     
-    if not args.save_data and not args.skip_visualization:
-        args.save_data = f"saved_data_{args.dataset}_{args.data_style}.pkl"
-    
-    # Display pipeline configuration
-    print(f"Deep-IRT Pipeline: {args.dataset} ({args.data_style})")
-    print(f"Config: {args.epochs} epochs, fold {args.fold}")
-    print(f"Output: {args.output_dir}")
-    
-    training_success = True
-    checkpoint_path = None
-    config_path = None
-    
-    # Execute training phase
+    # Phase 1: Training
     if not args.skip_training:
-        training_success, checkpoint_path, config_path = train_model(args)
-        if not training_success:
-            print("Pipeline failed at training stage")
-            return 1
-    else:
-        # Locate existing checkpoint files
-        checkpoint_path, config_path = find_checkpoint_files(args.data_style, args.dataset)
-        if not checkpoint_path or not os.path.exists(config_path):
-            print(f"No existing checkpoint found for {args.dataset} ({args.data_style})")
-            return 1
+        print("\n" + "="*20 + " PHASE 1: TRAINING " + "="*20)
+        training_results = train_all_models(datasets, args.single_fold, args.fold)
     
-    # Execute visualization phase
-    viz_success = True
+    # Phase 2: Evaluation
+    if not args.skip_evaluation:
+        print("\n" + "="*20 + " PHASE 2: EVALUATION " + "="*19)
+        evaluation_results = evaluate_all_models(datasets, ['test'])
+    
+    # Phase 3: Statistics Extraction
+    if not args.skip_statistics:
+        print("\n" + "="*18 + " PHASE 3: STATISTICS " + "="*18)
+        statistics = extract_model_statistics(datasets)
+    
+    # Phase 4: Visualization
     if not args.skip_visualization:
-        os.makedirs(args.output_dir, exist_ok=True)
-        viz_success = create_visualizations(checkpoint_path, config_path, args.output_dir, 
-                                          args.student_idx, args.save_data)
+        print("\n" + "="*18 + " PHASE 4: VISUALIZATION " + "="*16)
+        generate_all_visualizations(datasets)
     
-    # Report final pipeline status
-    if training_success and viz_success:
-        print(f"\n{'='*50}")
-        print("Pipeline completed successfully!")
-        print(f"Results saved to: {args.output_dir}")
-        print(f"{'='*50}")
-        return 0
-    else:
-        print(f"\n{'='*50}")
-        print("Pipeline failed!")
-        print(f"{'='*50}")
-        return 1
+    # Phase 5: Summary Report
+    print("\n" + "="*20 + " PHASE 5: SUMMARY " + "="*20)
+    create_summary_report(training_results, evaluation_results, statistics)
+    
+    return 0
 
 
 if __name__ == "__main__":

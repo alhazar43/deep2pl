@@ -1,0 +1,23 @@
+2025-07-20 15:39:41,341 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-20 15:39:41,341 - INFO - Dataset: assist2009_updated
+2025-07-20 15:39:41,341 - INFO - Fold: 0
+2025-07-20 15:39:41,341 - INFO - Epochs: 1
+2025-07-20 15:39:41,341 - INFO - Batch size: 8
+2025-07-20 15:39:41,341 - INFO - Learning rate: 0.001
+2025-07-20 15:39:41,513 - INFO - Using device: cuda
+2025-07-20 15:39:41,514 - INFO - Loading assist2009_updated dataset...
+2025-07-20 15:39:42,854 - INFO - Data: 2331/590/1230 | Model: 1,096,852 params | Per-KC: True (110 KCs)
+2025-07-20 15:39:44,300 - INFO - Starting training...
+2025-07-20 21:44:26,112 - INFO - === Training Deep-IRT (5-Fold Cross Validation) ===
+2025-07-20 21:44:26,112 - INFO - Dataset: assist2009_updated
+2025-07-20 21:44:26,112 - INFO - Epochs: 30
+2025-07-20 21:44:26,112 - INFO - Batch size: 32
+2025-07-20 21:44:26,112 - INFO - Learning rate: 0.001
+2025-07-20 21:44:26,112 - INFO - 
+=== Starting Fold 0 ===
+2025-07-20 21:44:26,220 - INFO - Using device: cuda
+2025-07-20 21:44:26,221 - INFO - Loading assist2009_updated dataset...
+2025-07-20 21:44:26,598 - INFO - Data: 2331/590/1230 | Model: 137,251 params | Per-KC: False
+2025-07-20 21:44:27,357 - INFO - Starting training...
+2025-07-20 22:00:39,399 - INFO - Epoch 5: Train=0.0384, Valid=0.0417, AUC=0.9925
+2025-07-20 22:14:22,145 - INFO - Epoch 10: Train=0.0374, Valid=0.0407, AUC=0.9927

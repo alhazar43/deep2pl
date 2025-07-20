@@ -1,0 +1,41 @@
+2025-07-20 15:45:12,974 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-20 15:45:12,974 - INFO - Dataset: fsaif1tof3
+2025-07-20 15:45:12,975 - INFO - Fold: 0
+2025-07-20 15:45:12,975 - INFO - Epochs: 1
+2025-07-20 15:45:12,975 - INFO - Batch size: 8
+2025-07-20 15:45:12,975 - INFO - Learning rate: 0.001
+2025-07-20 15:45:13,087 - INFO - Using device: cuda
+2025-07-20 15:45:13,088 - INFO - Loading fsaif1tof3 dataset...
+2025-07-20 15:45:13,328 - INFO - Data: 173/44/93 | Model: 885,803 params | Per-KC: False
+2025-07-20 15:45:14,270 - INFO - Starting training...
+2025-07-20 15:46:08,853 - INFO - Final evaluation on test set...
+2025-07-20 15:46:16,499 - INFO - Test: Loss=0.1404, AUC=0.9465, Acc=0.9069
+2025-07-20 15:46:16,523 - INFO - Training completed!
+2025-07-20 15:46:16,523 - INFO - Best validation AUC: 0.0000
+2025-07-20 15:46:16,523 - INFO - Final test AUC: 0.9465
+2025-07-20 15:53:20,639 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-20 15:53:20,639 - INFO - Dataset: fsaif1tof3
+2025-07-20 15:53:20,639 - INFO - Fold: 0
+2025-07-20 15:53:20,639 - INFO - Epochs: 1
+2025-07-20 15:53:20,639 - INFO - Batch size: 8
+2025-07-20 15:53:20,639 - INFO - Learning rate: 0.001
+2025-07-20 15:53:20,735 - INFO - Using device: cuda
+2025-07-20 15:53:20,736 - INFO - Loading fsaif1tof3 dataset...
+2025-07-20 15:53:20,957 - INFO - Data: 173/44/93 | Model: 885,803 params | Per-KC: False
+2025-07-20 15:53:21,748 - INFO - Starting training...
+2025-07-20 15:54:12,904 - INFO - Final evaluation on test set...
+2025-07-20 18:23:58,619 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-20 18:23:58,620 - INFO - Dataset: fsaif1tof3
+2025-07-20 18:23:58,620 - INFO - Fold: 0
+2025-07-20 18:23:58,620 - INFO - Epochs: 1
+2025-07-20 18:23:58,620 - INFO - Batch size: 4
+2025-07-20 18:23:58,620 - INFO - Learning rate: 0.001
+2025-07-20 18:23:58,732 - INFO - Using device: cuda
+2025-07-20 18:23:58,732 - INFO - Loading fsaif1tof3 dataset...
+2025-07-20 18:23:58,927 - INFO - Data: 173/44/93 | Model: 885,803 params | Per-KC: False
+2025-07-20 18:23:59,462 - INFO - Starting training...
+2025-07-20 18:24:51,560 - INFO - Final evaluation on test set...
+2025-07-20 18:24:58,284 - INFO - Test: Loss=0.1423, AUC=0.9496, Acc=0.9112
+2025-07-20 18:24:58,310 - INFO - Training completed!
+2025-07-20 18:24:58,310 - INFO - Best validation AUC: 0.0000
+2025-07-20 18:24:58,310 - INFO - Final test AUC: 0.9496
