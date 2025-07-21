@@ -1,15 +1,20 @@
-2025-07-21 01:24:55,021 - INFO - === Training Deep-IRT (Single Fold) ===
-2025-07-21 01:24:55,022 - INFO - Dataset: STATICS
-2025-07-21 01:24:55,022 - INFO - Fold: 0
-2025-07-21 01:24:55,022 - INFO - Epochs: 1
-2025-07-21 01:24:55,022 - INFO - Batch size: 16
-2025-07-21 01:24:55,022 - INFO - Learning rate: 0.001
-2025-07-21 01:24:55,117 - INFO - Using device: cuda
-2025-07-21 01:24:55,117 - INFO - Loading STATICS dataset...
-2025-07-21 01:24:55,347 - INFO - Data: 179/50/104 | Model: 535,951 params | Per-KC: True (98 KCs)
-2025-07-21 01:24:55,924 - INFO - Starting training...
-2025-07-21 01:25:16,275 - INFO - Final evaluation on test set...
-2025-07-21 01:25:18,949 - INFO - Test: Loss=0.2725, AUC=0.9183, Acc=0.8893
-2025-07-21 01:25:18,961 - INFO - Training completed!
-2025-07-21 01:25:18,961 - INFO - Best validation AUC: 0.0000
-2025-07-21 01:25:18,961 - INFO - Final test AUC: 0.9183
+2025-07-21 16:13:20,497 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 16:13:20,497 - INFO - Dataset: STATICS
+2025-07-21 16:13:20,497 - INFO - Fold: 0
+2025-07-21 16:13:20,497 - INFO - Epochs: 2
+2025-07-21 16:13:20,497 - INFO - Batch size: 16
+2025-07-21 16:13:20,497 - INFO - Learning rate: 0.001
+2025-07-21 16:13:20,652 - INFO - Using device: cuda
+2025-07-21 16:13:20,652 - INFO - Loading STATICS dataset...
+2025-07-21 16:13:20,891 - INFO - Data: 179/50/104 | Model: 700,697 params | Per-KC: True (98 KCs)
+2025-07-21 16:13:21,480 - INFO - Starting training...
+2025-07-21 16:30:10,194 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 16:30:10,194 - INFO - Dataset: STATICS
+2025-07-21 16:30:10,194 - INFO - Fold: 0
+2025-07-21 16:30:10,194 - INFO - Epochs: 5
+2025-07-21 16:30:10,194 - INFO - Batch size: 16
+2025-07-21 16:30:10,194 - INFO - Learning rate: 0.001
+2025-07-21 16:30:10,310 - INFO - Using device: cuda
+2025-07-21 16:30:10,311 - INFO - Loading STATICS dataset...
+2025-07-21 16:30:10,568 - INFO - Data: 179/50/104 | Model: 700,697 params | Per-KC: True (98 KCs)
+2025-07-21 16:30:11,105 - INFO - Starting training...

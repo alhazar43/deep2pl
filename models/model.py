@@ -87,16 +87,48 @@ class DeepIRTModel(nn.Module):
             init_key_memory=init_key_memory
         )
         
-        # Prediction network - matching reference implementations
-        # Concatenate read_content + question_embedding for prediction
-        prediction_input_dim = value_dim + key_dim
+        # 2PL IRT prediction layers - always include discrimination
+        # Concatenate read_content + question_embedding for summary vector
+        summary_input_dim = value_dim + key_dim
         
-        self.prediction_network = nn.Sequential(
-            nn.Linear(prediction_input_dim, final_fc_dim),
+        # Summary vector network (equivalent to deep-yeung summary vector)
+        self.summary_network = nn.Sequential(
+            nn.Linear(summary_input_dim, final_fc_dim),
             nn.Tanh(),
-            nn.Dropout(dropout_rate),
-            nn.Linear(final_fc_dim, 1)
+            nn.Dropout(dropout_rate)
         )
+        
+        # Student ability network (theta) - from summary vector
+        self.student_ability_network = nn.Linear(final_fc_dim, 1)
+        
+        # Question difficulty network (beta) - from question embedding
+        self.question_difficulty_network = nn.Sequential(
+            nn.Linear(key_dim, 1),
+            nn.Tanh()  # Matching deep-yeung activation
+        )
+        
+        # 2PL Discrimination parameter (alpha) - from summary + question embedding
+        # a = softplus(W_a [f_t; k_t] + b_a) where f_t=summary, k_t=question_embedding
+        discrimination_input_dim = final_fc_dim + key_dim  # [f_t; k_t]
+        self.discrimination_network = nn.Sequential(
+            nn.Linear(discrimination_input_dim, 1),
+            nn.Softplus()  # Ensures positive discrimination
+        )
+        
+        # Per-KC networks (when per_kc_mode is enabled)
+        if self.per_kc_mode and self.n_kcs > 0:
+            # Per-KC ability networks
+            self.kc_ability_networks = nn.ModuleList([
+                nn.Linear(final_fc_dim, 1) for _ in range(self.n_kcs)
+            ])
+            # Per-KC difficulty networks  
+            self.kc_difficulty_networks = nn.ModuleList([
+                nn.Sequential(nn.Linear(key_dim, 1), nn.Tanh()) for _ in range(self.n_kcs)
+            ])
+            # Per-KC discrimination networks (2PL)
+            self.kc_discrimination_networks = nn.ModuleList([
+                nn.Sequential(nn.Linear(discrimination_input_dim, 1), nn.Softplus()) for _ in range(self.n_kcs)
+            ])
         
         # Initialize value memory parameter
         self.init_value_memory = nn.Parameter(torch.randn(memory_size, value_dim))
@@ -110,11 +142,40 @@ class DeepIRTModel(nn.Module):
         nn.init.kaiming_normal_(self.q_embed.weight)
         nn.init.kaiming_normal_(self.qa_embed.weight)
         
-        # Initialize prediction network
-        for module in self.prediction_network:
+        # Initialize 2PL IRT networks
+        for module in self.summary_network:
             if isinstance(module, nn.Linear):
                 nn.init.kaiming_normal_(module.weight)
                 nn.init.constant_(module.bias, 0)
+        
+        nn.init.kaiming_normal_(self.student_ability_network.weight)
+        nn.init.constant_(self.student_ability_network.bias, 0)
+        
+        for module in self.question_difficulty_network:
+            if isinstance(module, nn.Linear):
+                nn.init.kaiming_normal_(module.weight)
+                nn.init.constant_(module.bias, 0)
+        
+        for module in self.discrimination_network:
+            if isinstance(module, nn.Linear):
+                nn.init.kaiming_normal_(module.weight)
+                nn.init.constant_(module.bias, 0)
+        
+        # Initialize per-KC networks if enabled
+        if self.per_kc_mode and self.n_kcs > 0:
+            for kc_net in self.kc_ability_networks:
+                nn.init.kaiming_normal_(kc_net.weight)
+                nn.init.constant_(kc_net.bias, 0)
+            for kc_net in self.kc_difficulty_networks:
+                for module in kc_net:
+                    if isinstance(module, nn.Linear):
+                        nn.init.kaiming_normal_(module.weight)
+                        nn.init.constant_(module.bias, 0)
+            for kc_net in self.kc_discrimination_networks:
+                for module in kc_net:
+                    if isinstance(module, nn.Linear):
+                        nn.init.kaiming_normal_(module.weight)
+                        nn.init.constant_(module.bias, 0)
     
     def forward(self, q_data, qa_data, target_mask=None):
         """
@@ -127,12 +188,13 @@ class DeepIRTModel(nn.Module):
             target_mask: Optional mask for valid positions
             
         Returns:
-            tuple: (predictions, student_abilities, item_difficulties, z_values, kc_info)
+            tuple: (predictions, student_abilities, item_difficulties, discrimination_params, z_values, kc_info)
             - predictions: Shape (batch_size, seq_len)  
-            - student_abilities: Shape (batch_size, seq_len) - dummy values
-            - item_difficulties: Shape (batch_size, seq_len) - dummy values
-            - z_values: Shape (batch_size, seq_len) - dummy values
-            - kc_info: Dict with KC information - empty dict
+            - student_abilities: Shape (batch_size, seq_len) - theta parameters
+            - item_difficulties: Shape (batch_size, seq_len) - beta parameters
+            - discrimination_params: Shape (batch_size, seq_len) - alpha parameters (2PL)
+            - z_values: Shape (batch_size, seq_len) - z-values for IRT
+            - kc_info: Dict with KC information and per-KC parameters
         """
         batch_size, seq_len = q_data.shape
         device = q_data.device
@@ -148,8 +210,20 @@ class DeepIRTModel(nn.Module):
         q_embedded = self.q_embed(q_data)    # (batch_size, seq_len, key_dim)
         qa_embedded = self.qa_embed(qa_data)  # (batch_size, seq_len, value_dim)
         
-        # Process sequence step by step - matching reference implementations
+        # Process sequence step by step - 2PL IRT with discrimination
         predictions = []
+        student_abilities = []
+        item_difficulties = []
+        discrimination_params = []
+        z_values = []
+        
+        # Per-KC tracking
+        kc_info = {}
+        if self.per_kc_mode and self.n_kcs > 0:
+            all_kc_abilities = []  # (batch_size, seq_len, n_kcs)
+            all_kc_difficulties = []  # (batch_size, seq_len, n_kcs) 
+            all_kc_discriminations = []  # (batch_size, seq_len, n_kcs)
+            all_kc_z_values = []  # (batch_size, seq_len, n_kcs)
         
         for t in range(seq_len):
             # Get current embeddings
@@ -163,27 +237,81 @@ class DeepIRTModel(nn.Module):
             # 2. Read
             read_content = self.memory.read(correlation_weight)
             
-            # 3. Predict (before write, using current read content)
-            # Concatenate read content with question embedding for prediction
-            prediction_input = torch.cat([read_content, q_t], dim=1)
-            prediction_logit = self.prediction_network(prediction_input)
-            prediction = torch.sigmoid(prediction_logit)
+            # 3. 2PL IRT Parameter Computation
+            # Summary vector (mastery_level_prior_difficulty)
+            summary_input = torch.cat([read_content, q_t], dim=1)
+            summary_vector = self.summary_network(summary_input)
             
+            # Student ability (theta) from summary vector
+            student_ability = self.student_ability_network(summary_vector)  # (batch_size, 1)
+            
+            # Question difficulty (beta) from question embedding  
+            question_difficulty = self.question_difficulty_network(q_t)  # (batch_size, 1)
+            
+            # Discrimination parameter (alpha) - 2PL: a = softplus(W_a [f_t; k_t] + b_a)
+            discrimination_input = torch.cat([summary_vector, q_t], dim=1)  # [f_t; k_t]
+            discrimination = self.discrimination_network(discrimination_input)  # (batch_size, 1)
+            
+            # 2PL prediction: z = a * (ability_scale * theta - beta)
+            z_value = discrimination * (self.ability_scale * student_ability - question_difficulty)
+            prediction = torch.sigmoid(z_value)
+            
+            # Store step results
             predictions.append(prediction)
+            student_abilities.append(student_ability)
+            item_difficulties.append(question_difficulty)
+            discrimination_params.append(discrimination)
+            z_values.append(z_value)
+            
+            # Per-KC computation if enabled
+            if self.per_kc_mode and self.n_kcs > 0:
+                step_kc_abilities = []
+                step_kc_difficulties = []
+                step_kc_discriminations = []
+                step_kc_z_values = []
+                
+                for kc_idx in range(self.n_kcs):
+                    kc_ability = self.kc_ability_networks[kc_idx](summary_vector)
+                    kc_difficulty = self.kc_difficulty_networks[kc_idx](q_t)
+                    kc_discrimination = self.kc_discrimination_networks[kc_idx](discrimination_input)
+                    kc_z = kc_discrimination * (self.ability_scale * kc_ability - kc_difficulty)
+                    
+                    step_kc_abilities.append(kc_ability)
+                    step_kc_difficulties.append(kc_difficulty)
+                    step_kc_discriminations.append(kc_discrimination)
+                    step_kc_z_values.append(kc_z)
+                
+                all_kc_abilities.append(torch.cat(step_kc_abilities, dim=1))  # (batch_size, n_kcs)
+                all_kc_difficulties.append(torch.cat(step_kc_difficulties, dim=1))
+                all_kc_discriminations.append(torch.cat(step_kc_discriminations, dim=1))
+                all_kc_z_values.append(torch.cat(step_kc_z_values, dim=1))
             
             # 4. Write (update memory for next step)
             self.memory.write(correlation_weight, qa_t)
         
-        # Stack predictions
+        # Stack all step results
         predictions = torch.stack(predictions, dim=1).squeeze(-1)  # (batch_size, seq_len)
+        student_abilities = torch.stack(student_abilities, dim=1).squeeze(-1)  # (batch_size, seq_len)
+        item_difficulties = torch.stack(item_difficulties, dim=1).squeeze(-1)  # (batch_size, seq_len)
+        discrimination_params = torch.stack(discrimination_params, dim=1).squeeze(-1)  # (batch_size, seq_len)
+        z_values = torch.stack(z_values, dim=1).squeeze(-1)  # (batch_size, seq_len)
         
-        # Return dummy values for backward compatibility with training script
-        student_abilities = torch.zeros_like(predictions)  # Dummy values
-        item_difficulties = torch.zeros_like(predictions)  # Dummy values  
-        z_values = torch.zeros_like(predictions)  # Dummy values
-        kc_info = {}  # Empty dict
+        # Per-KC results
+        if self.per_kc_mode and self.n_kcs > 0:
+            kc_info = {
+                'all_kc_thetas': torch.stack(all_kc_abilities, dim=1),  # (batch_size, seq_len, n_kcs)
+                'all_kc_betas': torch.stack(all_kc_difficulties, dim=1),  # (batch_size, seq_len, n_kcs)
+                'all_kc_alphas': torch.stack(all_kc_discriminations, dim=1),  # (batch_size, seq_len, n_kcs)
+                'all_kc_z_values': torch.stack(all_kc_z_values, dim=1),  # (batch_size, seq_len, n_kcs)
+                'q_to_kc': self.q_to_kc,
+                'kc_names': self.kc_names,
+                'n_kcs': self.n_kcs
+            }
         
-        return predictions, student_abilities, item_difficulties, z_values, kc_info
+        # Store discrimination in kc_info for visualization access
+        kc_info['discrimination_params'] = discrimination_params
+        
+        return predictions, student_abilities, item_difficulties, discrimination_params, z_values, kc_info
     
     def compute_loss(self, predictions, targets, target_mask=None):
         """

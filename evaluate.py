@@ -18,7 +18,7 @@ from datetime import datetime
 # tqdm removed for performance
 from sklearn.metrics import roc_auc_score, accuracy_score, precision_recall_curve, roc_curve
 
-from models.model import DeepIRTModel
+from models.model_selector import create_model
 from data.dataloader import create_datasets, create_dataloader
 from utils.config import Config
 
@@ -42,7 +42,7 @@ def load_trained_model(model_path, device='cpu'):
         device: Device to load the model on
         
     Returns:
-        model: Loaded DeepIRTModel
+        model: Loaded DeepIRT model (original or optimized)
         config: Model configuration
     """
     logger = logging.getLogger(__name__)
@@ -122,8 +122,12 @@ def load_trained_model(model_path, device='cpu'):
     state_dict = checkpoint.get('model_state_dict', checkpoint)
     actual_n_questions = state_dict['q_embed.weight'].shape[0] - 1
     
+    # Determine model type from config or default to optimized
+    model_type = getattr(config, 'model_type', 'optimized')
+    
     # Create model
-    model = DeepIRTModel(
+    model = create_model(
+        model_type=model_type,
         n_questions=actual_n_questions,
         memory_size=config.memory_size,
         key_dim=getattr(config, 'key_dim', 50),
@@ -172,7 +176,7 @@ def evaluate_model_detailed(model, data_loader, device, desc="Evaluating"):
             qa_data = batch['qa_data'].to(device)
             targets = batch['target'].to(device)
             
-            predictions, student_abilities, item_difficulties, z_values, kc_info = model(q_data, qa_data)
+            predictions, student_abilities, item_difficulties, discrimination_params, z_values, kc_info = model(q_data, qa_data)
             
             loss = model.compute_loss(predictions, targets)
             total_loss += loss.item()

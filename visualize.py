@@ -16,7 +16,7 @@ import json
 import pickle
 # tqdm removed for performance
 
-from models.model import DeepIRTModel
+from models.model_selector import create_model
 from data.dataloader import create_datasets, create_dataloader
 
 
@@ -39,7 +39,11 @@ def load_model(checkpoint_path, config):
     # q_embed has shape (n_questions + 1, embed_dim) due to padding_idx=0
     actual_n_questions = state_dict['q_embed.weight'].shape[0] - 1
     
-    model = DeepIRTModel(
+    # Determine model type from config
+    model_type = config.get('model_type', 'optimized')
+    
+    model = create_model(
+        model_type=model_type,
         n_questions=actual_n_questions,  # Use actual value from checkpoint
         memory_size=config['memory_size'],
         key_dim=config.get('key_dim', config.get('key_memory_state_dim', 50)),
@@ -102,7 +106,7 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                 break
                 
             q_data, qa_data = batch['q_data'], batch['qa_data']
-            _, student_abilities, item_difficulties, _, kc_info = model(q_data, qa_data)
+            _, student_abilities, item_difficulties, discrimination_params, _, kc_info = model(q_data, qa_data)
             
             batch_size, seq_len = q_data.shape
             if max_timesteps is not None:
@@ -118,26 +122,9 @@ def extract_data(model, data_loader, max_students=50, max_timesteps=None):
                         global_data['timesteps'].append(t)
                         global_data['question_ids'].append(q_data[student_idx, t].item())
                         
-                        # Extract question-specific discrimination parameters
-                        q_id = q_data[student_idx, t].item()
-                        if hasattr(model, 'prediction_network') and len(model.prediction_network) >= 4:
-                            final_layer = model.prediction_network[-1]
-                            if hasattr(final_layer, 'weight') and final_layer.weight is not None:
-                                # Get question-specific discrimination from embeddings
-                                if hasattr(model, 'q_embed') and q_id > 0 and q_id <= model.q_embed.num_embeddings - 1:
-                                    q_embed_weight = model.q_embed.weight[q_id]
-                                    # Use embedding norm as discrimination proxy
-                                    discrimination_proxy = torch.norm(q_embed_weight).item()
-                                    # Scale by final layer weight magnitude
-                                    weight_scale = torch.abs(final_layer.weight).mean().item()
-                                    discrimination_proxy = discrimination_proxy * weight_scale
-                                else:
-                                    discrimination_proxy = 1.0
-                                global_data['discrimination_params'].append(discrimination_proxy)
-                            else:
-                                global_data['discrimination_params'].append(1.0)
-                        else:
-                            global_data['discrimination_params'].append(1.0)
+                        # Extract discrimination parameter (alpha) from model output
+                        discrimination_value = discrimination_params[student_idx, t].item()
+                        global_data['discrimination_params'].append(discrimination_value)
             
             # Extract per-knowledge component data if in per-KC mode
             if 'all_kc_thetas' in kc_info:

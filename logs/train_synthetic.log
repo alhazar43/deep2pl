@@ -1,30 +1,450 @@
-2025-07-21 01:10:42,540 - INFO - === Training Deep-IRT (Single Fold) ===
-2025-07-21 01:10:42,540 - INFO - Dataset: synthetic
-2025-07-21 01:10:42,540 - INFO - Fold: 0
-2025-07-21 01:10:42,540 - INFO - Epochs: 1
-2025-07-21 01:10:42,540 - INFO - Batch size: 32
-2025-07-21 01:10:42,540 - INFO - Learning rate: 0.001
-2025-07-21 01:10:42,623 - INFO - Using device: cuda
-2025-07-21 01:10:42,623 - INFO - Loading synthetic dataset...
-2025-07-21 01:10:42,898 - INFO - Data: 2560/640/800 | Model: 128,251 params | Per-KC: False
-2025-07-21 01:10:43,425 - INFO - Starting training...
-2025-07-21 01:10:48,077 - INFO - Final evaluation on test set...
-2025-07-21 01:10:48,462 - INFO - Test: Loss=0.6119, AUC=0.6938, Acc=0.6548
-2025-07-21 01:10:48,467 - INFO - Training completed!
-2025-07-21 01:10:48,467 - INFO - Best validation AUC: 0.0000
-2025-07-21 01:10:48,467 - INFO - Final test AUC: 0.6938
-2025-07-21 01:13:00,756 - INFO - === Training Deep-IRT (Single Fold) ===
-2025-07-21 01:13:00,756 - INFO - Dataset: synthetic
-2025-07-21 01:13:00,756 - INFO - Fold: 0
-2025-07-21 01:13:00,756 - INFO - Epochs: 1
-2025-07-21 01:13:00,756 - INFO - Batch size: 32
-2025-07-21 01:13:00,756 - INFO - Learning rate: 0.001
-2025-07-21 01:13:00,850 - INFO - Using device: cuda
-2025-07-21 01:13:00,850 - INFO - Loading synthetic dataset...
-2025-07-21 01:13:01,081 - INFO - Data: 2560/640/800 | Model: 128,251 params | Per-KC: False
-2025-07-21 01:13:01,592 - INFO - Starting training...
-2025-07-21 01:13:07,245 - INFO - Final evaluation on test set...
-2025-07-21 01:13:07,685 - INFO - Test: Loss=0.6119, AUC=0.6938, Acc=0.6548
-2025-07-21 01:13:07,691 - INFO - Training completed!
-2025-07-21 01:13:07,691 - INFO - Best validation AUC: 0.0000
-2025-07-21 01:13:07,691 - INFO - Final test AUC: 0.6938
+2025-07-21 16:11:24,712 - INFO - === Training Deep-IRT (5-Fold Cross Validation) ===
+2025-07-21 16:11:24,712 - INFO - Dataset: synthetic
+2025-07-21 16:11:24,712 - INFO - Epochs: 3
+2025-07-21 16:11:24,712 - INFO - Batch size: 32
+2025-07-21 16:11:24,712 - INFO - Learning rate: 0.001
+2025-07-21 16:11:24,712 - INFO - 
+=== Starting Fold 0 ===
+2025-07-21 16:11:24,829 - INFO - Using device: cuda
+2025-07-21 16:11:24,830 - INFO - Loading synthetic dataset...
+2025-07-21 16:11:25,156 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:11:25,755 - INFO - Starting training...
+2025-07-21 16:11:45,830 - INFO - Final evaluation on test set...
+2025-07-21 16:11:46,712 - INFO - Test: Loss=0.5657, AUC=0.7507, Acc=0.6815
+2025-07-21 16:11:46,723 - INFO - Training completed!
+2025-07-21 16:11:46,723 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:11:46,723 - INFO - Final test AUC: 0.7507
+2025-07-21 16:11:46,724 - INFO - 
+=== Starting Fold 1 ===
+2025-07-21 16:11:46,724 - INFO - Using device: cuda
+2025-07-21 16:11:46,726 - INFO - Loading synthetic dataset...
+2025-07-21 16:11:46,783 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:11:46,783 - INFO - Starting training...
+2025-07-21 16:12:07,157 - INFO - Final evaluation on test set...
+2025-07-21 16:12:07,807 - INFO - Test: Loss=0.5649, AUC=0.7514, Acc=0.6847
+2025-07-21 16:12:07,813 - INFO - Training completed!
+2025-07-21 16:12:07,813 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:12:07,813 - INFO - Final test AUC: 0.7514
+2025-07-21 16:12:07,814 - INFO - 
+=== Starting Fold 2 ===
+2025-07-21 16:12:07,814 - INFO - Using device: cuda
+2025-07-21 16:12:07,815 - INFO - Loading synthetic dataset...
+2025-07-21 16:12:07,944 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:12:07,945 - INFO - Starting training...
+2025-07-21 16:12:27,818 - INFO - Final evaluation on test set...
+2025-07-21 16:12:28,458 - INFO - Test: Loss=0.5640, AUC=0.7518, Acc=0.6843
+2025-07-21 16:12:28,464 - INFO - Training completed!
+2025-07-21 16:12:28,464 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:12:28,464 - INFO - Final test AUC: 0.7518
+2025-07-21 16:12:28,465 - INFO - 
+=== Starting Fold 3 ===
+2025-07-21 16:12:28,466 - INFO - Using device: cuda
+2025-07-21 16:12:28,466 - INFO - Loading synthetic dataset...
+2025-07-21 16:12:28,524 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:12:28,524 - INFO - Starting training...
+2025-07-21 16:12:48,050 - INFO - Final evaluation on test set...
+2025-07-21 16:12:48,656 - INFO - Test: Loss=0.5627, AUC=0.7525, Acc=0.6868
+2025-07-21 16:12:48,663 - INFO - Training completed!
+2025-07-21 16:12:48,663 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:12:48,663 - INFO - Final test AUC: 0.7525
+2025-07-21 16:12:48,664 - INFO - 
+=== Starting Fold 4 ===
+2025-07-21 16:12:48,664 - INFO - Using device: cuda
+2025-07-21 16:12:48,665 - INFO - Loading synthetic dataset...
+2025-07-21 16:12:48,801 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:12:48,801 - INFO - Starting training...
+2025-07-21 16:13:08,429 - INFO - Final evaluation on test set...
+2025-07-21 16:13:09,047 - INFO - Test: Loss=0.5646, AUC=0.7518, Acc=0.6856
+2025-07-21 16:13:09,054 - INFO - Training completed!
+2025-07-21 16:13:09,054 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:13:09,054 - INFO - Final test AUC: 0.7518
+2025-07-21 16:13:09,056 - INFO - 5-fold cross validation completed!
+2025-07-21 16:13:09,056 - INFO - Mean validation AUC: 0.0000 ± 0.0000
+2025-07-21 16:13:09,056 - INFO - Mean test AUC: 0.7516 ± 0.0006
+2025-07-21 16:26:43,083 - INFO - === Training Deep-IRT (5-Fold Cross Validation) ===
+2025-07-21 16:26:43,084 - INFO - Dataset: synthetic
+2025-07-21 16:26:43,084 - INFO - Epochs: 2
+2025-07-21 16:26:43,084 - INFO - Batch size: 32
+2025-07-21 16:26:43,084 - INFO - Learning rate: 0.001
+2025-07-21 16:26:43,084 - INFO - 
+=== Starting Fold 0 ===
+2025-07-21 16:26:43,314 - INFO - Using device: cuda
+2025-07-21 16:26:43,315 - INFO - Loading synthetic dataset...
+2025-07-21 16:26:43,674 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:26:44,180 - INFO - Starting training...
+2025-07-21 16:26:56,859 - INFO - Final evaluation on test set...
+2025-07-21 16:26:57,484 - INFO - Test: Loss=0.5879, AUC=0.7199, Acc=0.6623
+2025-07-21 16:26:57,501 - INFO - Training completed!
+2025-07-21 16:26:57,501 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:26:57,501 - INFO - Final test AUC: 0.7199
+2025-07-21 16:26:57,502 - INFO - 
+=== Starting Fold 1 ===
+2025-07-21 16:26:57,502 - INFO - Using device: cuda
+2025-07-21 16:26:57,503 - INFO - Loading synthetic dataset...
+2025-07-21 16:26:57,563 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:26:57,563 - INFO - Starting training...
+2025-07-21 16:27:10,120 - INFO - Final evaluation on test set...
+2025-07-21 16:27:10,721 - INFO - Test: Loss=0.5893, AUC=0.7188, Acc=0.6641
+2025-07-21 16:27:10,728 - INFO - Training completed!
+2025-07-21 16:27:10,728 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:27:10,728 - INFO - Final test AUC: 0.7188
+2025-07-21 16:27:10,729 - INFO - 
+=== Starting Fold 2 ===
+2025-07-21 16:27:10,729 - INFO - Using device: cuda
+2025-07-21 16:27:10,730 - INFO - Loading synthetic dataset...
+2025-07-21 16:27:10,875 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:27:10,876 - INFO - Starting training...
+2025-07-21 16:27:22,523 - INFO - Final evaluation on test set...
+2025-07-21 16:27:23,109 - INFO - Test: Loss=0.5901, AUC=0.7184, Acc=0.6619
+2025-07-21 16:27:23,116 - INFO - Training completed!
+2025-07-21 16:27:23,116 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:27:23,116 - INFO - Final test AUC: 0.7184
+2025-07-21 16:27:23,117 - INFO - 
+=== Starting Fold 3 ===
+2025-07-21 16:27:23,117 - INFO - Using device: cuda
+2025-07-21 16:27:23,117 - INFO - Loading synthetic dataset...
+2025-07-21 16:27:23,174 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:27:23,174 - INFO - Starting training...
+2025-07-21 16:27:35,198 - INFO - Final evaluation on test set...
+2025-07-21 16:27:35,794 - INFO - Test: Loss=0.5900, AUC=0.7199, Acc=0.6603
+2025-07-21 16:27:35,802 - INFO - Training completed!
+2025-07-21 16:27:35,802 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:27:35,802 - INFO - Final test AUC: 0.7199
+2025-07-21 16:27:35,803 - INFO - 
+=== Starting Fold 4 ===
+2025-07-21 16:27:35,803 - INFO - Using device: cuda
+2025-07-21 16:27:35,804 - INFO - Loading synthetic dataset...
+2025-07-21 16:27:35,860 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:27:35,860 - INFO - Starting training...
+2025-07-21 16:27:49,145 - INFO - Final evaluation on test set...
+2025-07-21 16:27:49,698 - INFO - Test: Loss=0.5881, AUC=0.7200, Acc=0.6628
+2025-07-21 16:27:49,713 - INFO - Training completed!
+2025-07-21 16:27:49,713 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:27:49,713 - INFO - Final test AUC: 0.7200
+2025-07-21 16:27:49,715 - INFO - 5-fold cross validation completed!
+2025-07-21 16:27:49,715 - INFO - Mean validation AUC: 0.0000 ± 0.0000
+2025-07-21 16:27:49,715 - INFO - Mean test AUC: 0.7194 ± 0.0007
+2025-07-21 16:29:32,429 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 16:29:32,429 - INFO - Dataset: synthetic
+2025-07-21 16:29:32,429 - INFO - Fold: 0
+2025-07-21 16:29:32,429 - INFO - Epochs: 3
+2025-07-21 16:29:32,429 - INFO - Batch size: 32
+2025-07-21 16:29:32,429 - INFO - Learning rate: 0.001
+2025-07-21 16:29:32,536 - INFO - Using device: cuda
+2025-07-21 16:29:32,536 - INFO - Loading synthetic dataset...
+2025-07-21 16:29:32,786 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:29:33,311 - INFO - Starting training...
+2025-07-21 16:29:54,227 - INFO - Final evaluation on test set...
+2025-07-21 16:29:54,922 - INFO - Test: Loss=0.5657, AUC=0.7507, Acc=0.6815
+2025-07-21 16:29:54,929 - INFO - Training completed!
+2025-07-21 16:29:54,929 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:29:54,929 - INFO - Final test AUC: 0.7507
+2025-07-21 16:35:11,849 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 16:35:11,850 - INFO - Dataset: synthetic
+2025-07-21 16:35:11,850 - INFO - Fold: 0
+2025-07-21 16:35:11,850 - INFO - Epochs: 3
+2025-07-21 16:35:11,850 - INFO - Batch size: 32
+2025-07-21 16:35:11,850 - INFO - Learning rate: 0.001
+2025-07-21 16:35:12,009 - INFO - Using device: cuda
+2025-07-21 16:35:12,010 - INFO - Loading synthetic dataset...
+2025-07-21 16:35:12,270 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:35:12,783 - INFO - Starting training...
+2025-07-21 16:35:32,362 - INFO - Final evaluation on test set...
+2025-07-21 16:35:33,013 - INFO - Test: Loss=0.5657, AUC=0.7507, Acc=0.6815
+2025-07-21 16:35:33,027 - INFO - Training completed!
+2025-07-21 16:35:33,027 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:35:33,027 - INFO - Final test AUC: 0.7507
+2025-07-21 16:36:12,648 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 16:36:12,648 - INFO - Dataset: synthetic
+2025-07-21 16:36:12,648 - INFO - Fold: 0
+2025-07-21 16:36:12,648 - INFO - Epochs: 5
+2025-07-21 16:36:12,648 - INFO - Batch size: 32
+2025-07-21 16:36:12,648 - INFO - Learning rate: 0.001
+2025-07-21 16:36:12,769 - INFO - Using device: cuda
+2025-07-21 16:36:12,769 - INFO - Loading synthetic dataset...
+2025-07-21 16:36:13,014 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:36:13,526 - INFO - Starting training...
+2025-07-21 16:36:48,014 - INFO - Epoch 5: Train=0.5532, Valid=0.5426, AUC=0.7806
+2025-07-21 16:36:48,060 - INFO - Computed full IRT statistics for (32, 50) samples
+2025-07-21 16:36:48,062 - INFO - New best model: train_loss=0.5532, best_auc=0.7806
+2025-07-21 16:36:48,062 - INFO - Final evaluation on test set...
+2025-07-21 16:36:48,711 - INFO - Test: Loss=0.5407, AUC=0.7802, Acc=0.7077
+2025-07-21 16:36:48,722 - INFO - Training completed!
+2025-07-21 16:36:48,722 - INFO - Best validation AUC: 0.7806
+2025-07-21 16:36:48,722 - INFO - Final test AUC: 0.7802
+2025-07-21 16:40:45,458 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 16:40:45,458 - INFO - Dataset: synthetic
+2025-07-21 16:40:45,458 - INFO - Fold: 0
+2025-07-21 16:40:45,458 - INFO - Epochs: 5
+2025-07-21 16:40:45,458 - INFO - Batch size: 32
+2025-07-21 16:40:45,458 - INFO - Learning rate: 0.001
+2025-07-21 16:40:45,615 - INFO - Using device: cuda
+2025-07-21 16:40:45,615 - INFO - Loading synthetic dataset...
+2025-07-21 16:40:45,849 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:40:46,368 - INFO - Starting training...
+2025-07-21 16:41:18,564 - INFO - Epoch 5: Train=0.5532, Valid=0.5426, AUC=0.7806
+2025-07-21 16:41:18,589 - INFO - Fast IRT extraction: α=0.162±0.009, β=0.000±0.990, θ=0.000±1.323
+2025-07-21 16:41:18,611 - INFO - Full IRT statistics: θ=0.639±1.325 (sample: (32, 50))
+2025-07-21 16:41:18,613 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold0.pkl
+2025-07-21 16:41:18,613 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold0.pkl
+2025-07-21 16:41:18,614 - INFO - New best model: train_loss=0.5532, best_auc=0.7806
+2025-07-21 16:41:18,614 - INFO - Final evaluation on test set...
+2025-07-21 16:41:19,234 - INFO - Test: Loss=0.5407, AUC=0.7802, Acc=0.7077
+2025-07-21 16:41:19,246 - INFO - Training completed!
+2025-07-21 16:41:19,246 - INFO - Best validation AUC: 0.7806
+2025-07-21 16:41:19,246 - INFO - Final test AUC: 0.7802
+2025-07-21 16:46:30,190 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 16:46:30,190 - INFO - Dataset: synthetic
+2025-07-21 16:46:30,190 - INFO - Fold: 0
+2025-07-21 16:46:30,190 - INFO - Epochs: 20
+2025-07-21 16:46:30,190 - INFO - Batch size: 32
+2025-07-21 16:46:30,190 - INFO - Learning rate: 0.001
+2025-07-21 16:46:30,282 - INFO - Using device: cuda
+2025-07-21 16:46:30,282 - INFO - Loading synthetic dataset...
+2025-07-21 16:46:30,559 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:46:31,107 - INFO - Starting training...
+2025-07-21 16:47:02,797 - INFO - Epoch 5: Train=0.5532, Valid=0.5426, AUC=0.7806
+2025-07-21 16:47:02,887 - INFO - Fast IRT extraction: α=0.162±0.009, β=0.000±0.990, θ=0.000±1.323
+2025-07-21 16:47:02,912 - INFO - Full IRT statistics: θ=0.639±1.325 (sample: (32, 50))
+2025-07-21 16:47:02,912 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold0.pkl
+2025-07-21 16:47:02,913 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold0.pkl
+2025-07-21 16:47:02,914 - INFO - New best model: train_loss=0.5532, best_auc=0.7806
+2025-07-21 16:47:33,888 - INFO - Epoch 10: Train=0.5296, Valid=0.5217, AUC=0.8037
+2025-07-21 16:47:33,918 - INFO - Fast IRT extraction: α=0.157±0.009, β=-0.000±0.990, θ=0.000±1.337
+2025-07-21 16:47:33,940 - INFO - Full IRT statistics: θ=0.410±1.330 (sample: (32, 50))
+2025-07-21 16:47:33,941 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold0.pkl
+2025-07-21 16:47:33,942 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold0.pkl
+2025-07-21 16:47:33,943 - INFO - New best model: train_loss=0.5296, best_auc=0.8037
+2025-07-21 16:48:09,555 - INFO - Epoch 15: Train=0.5121, Valid=0.5064, AUC=0.8179
+2025-07-21 16:48:09,567 - INFO - Fast IRT extraction: α=0.142±0.009, β=0.000±0.990, θ=-0.000±1.328
+2025-07-21 16:48:09,590 - INFO - Full IRT statistics: θ=0.468±1.496 (sample: (32, 50))
+2025-07-21 16:48:09,590 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold0.pkl
+2025-07-21 16:48:09,592 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold0.pkl
+2025-07-21 16:48:09,593 - INFO - New best model: train_loss=0.5121, best_auc=0.8179
+2025-07-21 16:48:43,141 - INFO - Epoch 20: Train=0.5053, Valid=0.5028, AUC=0.8191
+2025-07-21 16:48:43,164 - INFO - Fast IRT extraction: α=0.134±0.010, β=0.000±0.990, θ=-0.000±1.272
+2025-07-21 16:48:43,188 - INFO - Full IRT statistics: θ=0.399±1.672 (sample: (32, 50))
+2025-07-21 16:48:43,188 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold0.pkl
+2025-07-21 16:48:43,189 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold0.pkl
+2025-07-21 16:48:43,190 - INFO - New best model: train_loss=0.5053, best_auc=0.8191
+2025-07-21 16:48:43,190 - INFO - Final evaluation on test set...
+2025-07-21 16:48:43,809 - INFO - Test: Loss=0.5042, AUC=0.8167, Acc=0.7449
+2025-07-21 16:48:43,819 - INFO - Training completed!
+2025-07-21 16:48:43,819 - INFO - Best validation AUC: 0.8191
+2025-07-21 16:48:43,819 - INFO - Final test AUC: 0.8167
+2025-07-21 16:55:16,308 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 16:55:16,308 - INFO - Dataset: synthetic
+2025-07-21 16:55:16,308 - INFO - Fold: 0
+2025-07-21 16:55:16,308 - INFO - Epochs: 3
+2025-07-21 16:55:16,308 - INFO - Batch size: 16
+2025-07-21 16:55:16,308 - INFO - Learning rate: 0.005
+2025-07-21 16:55:16,412 - INFO - Using device: cuda
+2025-07-21 16:55:16,413 - INFO - Loading synthetic dataset...
+2025-07-21 16:55:16,680 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 16:55:17,218 - INFO - Starting training...
+2025-07-21 16:55:56,954 - INFO - Final evaluation on test set...
+2025-07-21 16:55:58,147 - INFO - Test: Loss=0.5199, AUC=0.8024, Acc=0.7302
+2025-07-21 16:55:58,158 - INFO - Training completed!
+2025-07-21 16:55:58,158 - INFO - Best validation AUC: 0.0000
+2025-07-21 16:55:58,158 - INFO - Final test AUC: 0.8024
+2025-07-21 17:01:32,837 - INFO - === Training Deep-IRT (5-Fold Cross Validation) ===
+2025-07-21 17:01:32,838 - INFO - Dataset: synthetic
+2025-07-21 17:01:32,838 - INFO - Epochs: 5
+2025-07-21 17:01:32,838 - INFO - Batch size: 32
+2025-07-21 17:01:32,838 - INFO - Learning rate: 0.001
+2025-07-21 17:01:32,838 - INFO - 
+=== Starting Fold 0 ===
+2025-07-21 17:01:32,935 - INFO - Using device: cuda
+2025-07-21 17:01:32,935 - INFO - Loading synthetic dataset...
+2025-07-21 17:01:33,151 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 17:01:33,702 - INFO - Starting training...
+2025-07-21 17:02:06,630 - INFO - Epoch 5: Train=0.5532, Valid=0.5426, AUC=0.7806
+2025-07-21 17:02:06,653 - INFO - Fast IRT extraction: α=0.162±0.009, β=0.000±0.990, θ=0.000±1.323
+2025-07-21 17:02:06,673 - INFO - Full IRT statistics: θ=0.639±1.325 (sample: (32, 50))
+2025-07-21 17:02:06,673 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold0.pkl
+2025-07-21 17:02:06,674 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold0.pkl
+2025-07-21 17:02:06,675 - INFO - New best model: train_loss=0.5532, best_auc=0.7806
+2025-07-21 17:02:06,675 - INFO - Final evaluation on test set...
+2025-07-21 17:02:07,222 - INFO - Test: Loss=0.5407, AUC=0.7802, Acc=0.7077
+2025-07-21 17:02:07,229 - INFO - Training completed!
+2025-07-21 17:02:07,229 - INFO - Best validation AUC: 0.7806
+2025-07-21 17:02:07,229 - INFO - Final test AUC: 0.7802
+2025-07-21 17:02:07,230 - INFO - 
+=== Starting Fold 1 ===
+2025-07-21 17:02:07,230 - INFO - Using device: cuda
+2025-07-21 17:02:07,238 - INFO - Loading synthetic dataset...
+2025-07-21 17:02:07,291 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 17:02:07,291 - INFO - Starting training...
+2025-07-21 17:02:39,056 - INFO - Epoch 5: Train=0.5545, Valid=0.5376, AUC=0.7858
+2025-07-21 17:02:39,077 - INFO - Fast IRT extraction: α=0.162±0.009, β=0.000±0.990, θ=0.000±1.325
+2025-07-21 17:02:39,101 - INFO - Full IRT statistics: θ=0.584±1.234 (sample: (32, 50))
+2025-07-21 17:02:39,103 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold1.pkl
+2025-07-21 17:02:39,103 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold1.pkl
+2025-07-21 17:02:39,104 - INFO - New best model: train_loss=0.5545, best_auc=0.7858
+2025-07-21 17:02:39,104 - INFO - Final evaluation on test set...
+2025-07-21 17:02:39,699 - INFO - Test: Loss=0.5418, AUC=0.7805, Acc=0.7086
+2025-07-21 17:02:39,737 - INFO - Training completed!
+2025-07-21 17:02:39,737 - INFO - Best validation AUC: 0.7858
+2025-07-21 17:02:39,737 - INFO - Final test AUC: 0.7805
+2025-07-21 17:02:39,739 - INFO - 
+=== Starting Fold 2 ===
+2025-07-21 17:02:39,739 - INFO - Using device: cuda
+2025-07-21 17:02:39,739 - INFO - Loading synthetic dataset...
+2025-07-21 17:02:39,798 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 17:02:39,799 - INFO - Starting training...
+2025-07-21 17:03:10,086 - INFO - Epoch 5: Train=0.5548, Valid=0.5367, AUC=0.7856
+2025-07-21 17:03:10,101 - INFO - Fast IRT extraction: α=0.163±0.009, β=0.000±0.990, θ=0.000±1.334
+2025-07-21 17:03:10,128 - INFO - Full IRT statistics: θ=0.547±1.185 (sample: (32, 50))
+2025-07-21 17:03:10,128 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold2.pkl
+2025-07-21 17:03:10,130 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold2.pkl
+2025-07-21 17:03:10,131 - INFO - New best model: train_loss=0.5548, best_auc=0.7856
+2025-07-21 17:03:10,131 - INFO - Final evaluation on test set...
+2025-07-21 17:03:10,713 - INFO - Test: Loss=0.5415, AUC=0.7789, Acc=0.7060
+2025-07-21 17:03:10,735 - INFO - Training completed!
+2025-07-21 17:03:10,735 - INFO - Best validation AUC: 0.7856
+2025-07-21 17:03:10,735 - INFO - Final test AUC: 0.7789
+2025-07-21 17:03:10,736 - INFO - 
+=== Starting Fold 3 ===
+2025-07-21 17:03:10,737 - INFO - Using device: cuda
+2025-07-21 17:03:10,737 - INFO - Loading synthetic dataset...
+2025-07-21 17:03:10,793 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 17:03:10,793 - INFO - Starting training...
+2025-07-21 17:03:42,678 - INFO - Epoch 5: Train=0.5539, Valid=0.5442, AUC=0.7809
+2025-07-21 17:03:42,696 - INFO - Fast IRT extraction: α=0.162±0.009, β=0.000±0.990, θ=-0.000±1.328
+2025-07-21 17:03:42,723 - INFO - Full IRT statistics: θ=0.877±1.236 (sample: (32, 50))
+2025-07-21 17:03:42,724 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold3.pkl
+2025-07-21 17:03:42,724 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold3.pkl
+2025-07-21 17:03:42,725 - INFO - New best model: train_loss=0.5539, best_auc=0.7809
+2025-07-21 17:03:42,725 - INFO - Final evaluation on test set...
+2025-07-21 17:03:43,305 - INFO - Test: Loss=0.5470, AUC=0.7760, Acc=0.7015
+2025-07-21 17:03:43,322 - INFO - Training completed!
+2025-07-21 17:03:43,322 - INFO - Best validation AUC: 0.7809
+2025-07-21 17:03:43,322 - INFO - Final test AUC: 0.7760
+2025-07-21 17:03:43,323 - INFO - 
+=== Starting Fold 4 ===
+2025-07-21 17:03:43,324 - INFO - Using device: cuda
+2025-07-21 17:03:43,324 - INFO - Loading synthetic dataset...
+2025-07-21 17:03:43,405 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 17:03:43,406 - INFO - Starting training...
+2025-07-21 17:04:13,654 - INFO - Epoch 5: Train=0.5526, Valid=0.5438, AUC=0.7761
+2025-07-21 17:04:13,670 - INFO - Fast IRT extraction: α=0.163±0.009, β=0.000±0.990, θ=-0.000±1.333
+2025-07-21 17:04:13,696 - INFO - Full IRT statistics: θ=0.659±1.314 (sample: (32, 50))
+2025-07-21 17:04:13,697 - INFO - Saved fast IRT parameters to irt_stats/fast_irt_synthetic_fold4.pkl
+2025-07-21 17:04:13,697 - INFO - Saved full IRT statistics to irt_stats/full_irt_synthetic_fold4.pkl
+2025-07-21 17:04:13,698 - INFO - New best model: train_loss=0.5526, best_auc=0.7761
+2025-07-21 17:04:13,698 - INFO - Final evaluation on test set...
+2025-07-21 17:04:14,272 - INFO - Test: Loss=0.5410, AUC=0.7797, Acc=0.7058
+2025-07-21 17:04:14,294 - INFO - Training completed!
+2025-07-21 17:04:14,294 - INFO - Best validation AUC: 0.7761
+2025-07-21 17:04:14,294 - INFO - Final test AUC: 0.7797
+2025-07-21 17:04:14,295 - INFO - 5-fold cross validation completed!
+2025-07-21 17:04:14,295 - INFO - Mean validation AUC: 0.7818 ± 0.0036
+2025-07-21 17:04:14,296 - INFO - Mean test AUC: 0.7791 ± 0.0016
+2025-07-21 20:27:55,787 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 20:27:55,787 - INFO - Dataset: synthetic
+2025-07-21 20:27:55,787 - INFO - Fold: 0
+2025-07-21 20:27:55,787 - INFO - Epochs: 3
+2025-07-21 20:27:55,787 - INFO - Batch size: 16
+2025-07-21 20:27:55,787 - INFO - Learning rate: 0.005
+2025-07-21 20:27:55,929 - INFO - Using device: cuda
+2025-07-21 20:27:55,931 - INFO - Loading synthetic dataset...
+2025-07-21 20:27:56,379 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 20:27:57,220 - INFO - Starting training...
+2025-07-21 20:28:36,103 - INFO - Final evaluation on test set...
+2025-07-21 20:28:37,375 - INFO - Test: Loss=0.5199, AUC=0.8024, Acc=0.7302
+2025-07-21 20:28:37,398 - INFO - Training completed!
+2025-07-21 20:28:37,398 - INFO - Best validation AUC: 0.0000
+2025-07-21 20:28:37,398 - INFO - Final test AUC: 0.8024
+2025-07-21 20:35:38,989 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 20:35:38,989 - INFO - Dataset: synthetic
+2025-07-21 20:35:38,989 - INFO - Fold: 0
+2025-07-21 20:35:38,989 - INFO - Epochs: 2
+2025-07-21 20:35:38,990 - INFO - Batch size: 32
+2025-07-21 20:35:38,990 - INFO - Learning rate: 0.001
+2025-07-21 20:35:39,156 - INFO - Using device: cuda
+2025-07-21 20:35:39,157 - INFO - Loading synthetic dataset...
+2025-07-21 20:35:39,395 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 20:35:39,919 - INFO - Starting training...
+2025-07-21 20:35:53,938 - INFO - Final evaluation on test set...
+2025-07-21 20:35:54,611 - INFO - Test: Loss=0.5879, AUC=0.7199, Acc=0.6623
+2025-07-21 20:35:54,618 - INFO - Training completed!
+2025-07-21 20:35:54,618 - INFO - Best validation AUC: 0.0000
+2025-07-21 20:35:54,618 - INFO - Final test AUC: 0.7199
+2025-07-21 20:44:28,872 - INFO - === Training Deep-IRT (5-Fold Cross Validation) ===
+2025-07-21 20:44:28,872 - INFO - Dataset: synthetic
+2025-07-21 20:44:28,872 - INFO - Epochs: 2
+2025-07-21 20:44:28,872 - INFO - Batch size: 32
+2025-07-21 20:44:28,872 - INFO - Learning rate: 0.001
+2025-07-21 20:44:28,872 - INFO - 
+=== Starting Fold 0 ===
+2025-07-21 20:44:29,006 - INFO - Using device: cuda
+2025-07-21 20:44:29,007 - INFO - Loading synthetic dataset...
+2025-07-21 20:44:29,246 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 20:44:29,833 - INFO - Starting training...
+2025-07-21 20:44:43,854 - INFO - Final evaluation on test set...
+2025-07-21 20:44:44,537 - INFO - Test: Loss=0.5879, AUC=0.7199, Acc=0.6623
+2025-07-21 20:44:44,546 - INFO - Training completed!
+2025-07-21 20:44:44,546 - INFO - Best validation AUC: 0.0000
+2025-07-21 20:44:44,546 - INFO - Final test AUC: 0.7199
+2025-07-21 20:44:44,547 - INFO - 
+=== Starting Fold 1 ===
+2025-07-21 20:44:44,548 - INFO - Using device: cuda
+2025-07-21 20:44:44,549 - INFO - Loading synthetic dataset...
+2025-07-21 20:44:44,605 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 20:44:44,606 - INFO - Starting training...
+2025-07-21 20:44:56,492 - INFO - Final evaluation on test set...
+2025-07-21 20:44:57,089 - INFO - Test: Loss=0.5893, AUC=0.7188, Acc=0.6641
+2025-07-21 20:44:57,115 - INFO - Training completed!
+2025-07-21 20:44:57,115 - INFO - Best validation AUC: 0.0000
+2025-07-21 20:44:57,115 - INFO - Final test AUC: 0.7188
+2025-07-21 20:44:57,116 - INFO - 
+=== Starting Fold 2 ===
+2025-07-21 20:44:57,116 - INFO - Using device: cuda
+2025-07-21 20:44:57,117 - INFO - Loading synthetic dataset...
+2025-07-21 20:44:57,237 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 20:44:57,238 - INFO - Starting training...
+2025-07-21 20:45:10,263 - INFO - Final evaluation on test set...
+2025-07-21 20:45:10,902 - INFO - Test: Loss=0.5901, AUC=0.7184, Acc=0.6619
+2025-07-21 20:45:10,920 - INFO - Training completed!
+2025-07-21 20:45:10,920 - INFO - Best validation AUC: 0.0000
+2025-07-21 20:45:10,920 - INFO - Final test AUC: 0.7184
+2025-07-21 20:45:10,921 - INFO - 
+=== Starting Fold 3 ===
+2025-07-21 20:45:10,922 - INFO - Using device: cuda
+2025-07-21 20:45:10,922 - INFO - Loading synthetic dataset...
+2025-07-21 20:45:10,984 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 20:45:10,984 - INFO - Starting training...
+2025-07-21 20:45:22,775 - INFO - Final evaluation on test set...
+2025-07-21 20:45:23,383 - INFO - Test: Loss=0.5900, AUC=0.7199, Acc=0.6603
+2025-07-21 20:45:23,407 - INFO - Training completed!
+2025-07-21 20:45:23,407 - INFO - Best validation AUC: 0.0000
+2025-07-21 20:45:23,407 - INFO - Final test AUC: 0.7199
+2025-07-21 20:45:23,408 - INFO - 
+=== Starting Fold 4 ===
+2025-07-21 20:45:23,408 - INFO - Using device: cuda
+2025-07-21 20:45:23,408 - INFO - Loading synthetic dataset...
+2025-07-21 20:45:23,469 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 20:45:23,469 - INFO - Starting training...
+2025-07-21 20:45:35,282 - INFO - Final evaluation on test set...
+2025-07-21 20:45:35,894 - INFO - Test: Loss=0.5881, AUC=0.7200, Acc=0.6628
+2025-07-21 20:45:35,918 - INFO - Training completed!
+2025-07-21 20:45:35,918 - INFO - Best validation AUC: 0.0000
+2025-07-21 20:45:35,918 - INFO - Final test AUC: 0.7200
+2025-07-21 20:45:35,920 - INFO - 5-fold cross validation completed!
+2025-07-21 20:45:35,920 - INFO - Mean validation AUC: 0.0000 ± 0.0000
+2025-07-21 20:45:35,920 - INFO - Mean test AUC: 0.7194 ± 0.0007
+2025-07-21 20:58:13,629 - INFO - === Training Deep-IRT (Single Fold) ===
+2025-07-21 20:58:13,629 - INFO - Dataset: synthetic
+2025-07-21 20:58:13,629 - INFO - Fold: 0
+2025-07-21 20:58:13,629 - INFO - Epochs: 1
+2025-07-21 20:58:13,629 - INFO - Batch size: 32
+2025-07-21 20:58:13,629 - INFO - Learning rate: 0.001
+2025-07-21 20:58:13,767 - INFO - Using device: cuda
+2025-07-21 20:58:13,768 - INFO - Loading synthetic dataset...
+2025-07-21 20:58:14,054 - INFO - Data: 2560/640/800 | Model: 128,503 params | Per-KC: False
+2025-07-21 20:58:14,619 - INFO - Starting training...
+2025-07-21 20:58:21,893 - INFO - Final evaluation on test set...
+2025-07-21 20:58:23,886 - INFO - Test: Loss=0.6102, AUC=0.6902, Acc=0.6478
+2025-07-21 20:58:23,896 - INFO - Training completed!
+2025-07-21 20:58:23,896 - INFO - Best validation AUC: 0.0000
+2025-07-21 20:58:23,897 - INFO - Final test AUC: 0.6902

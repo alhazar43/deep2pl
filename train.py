@@ -19,7 +19,7 @@ from datetime import datetime
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score, accuracy_score
 
-from models.model import DeepIRTModel
+from models.model_selector import create_model
 from data.dataloader import create_datasets, create_dataloader, get_dataset_info
 from utils.config import Config
 
@@ -268,7 +268,7 @@ def evaluate_model(model, data_loader, device, desc="Evaluating"):
             qa_data = batch['qa_data'].to(device)
             targets = batch['target'].to(device)
             
-            predictions, student_abilities, item_difficulties, z_values, kc_info = model(q_data, qa_data)
+            predictions, student_abilities, item_difficulties, discrimination_params, z_values, kc_info = model(q_data, qa_data)
             
             loss = model.compute_loss(predictions, targets)
             total_loss += loss.item()
@@ -309,7 +309,7 @@ def save_checkpoint(model, optimizer, epoch, loss, save_path, dataset_name, is_b
         torch.save(checkpoint, best_path)
 
 
-def train_model(config, logger, fold_idx=None):
+def train_model(config, logger, fold_idx=None, model_type='optimized'):
     """Main training function."""
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -342,7 +342,8 @@ def train_model(config, logger, fold_idx=None):
     valid_loader = create_dataloader(valid_dataset, config.batch_size, shuffle=False)
     test_loader = create_dataloader(test_dataset, config.batch_size, shuffle=False)
     
-    model = DeepIRTModel(
+    model = create_model(
+        model_type=model_type,
         n_questions=config.n_questions,
         memory_size=config.memory_size,
         key_dim=config.key_dim,
@@ -383,7 +384,8 @@ def train_model(config, logger, fold_idx=None):
             qa_data = batch['qa_data'].to(device)
             targets = batch['target'].to(device)
             
-            predictions, student_abilities, item_difficulties, z_values, kc_info = model(q_data, qa_data)
+            # During training, only compute predictions (major speedup!)
+            predictions = model(q_data, qa_data, training_mode=True)
             loss = model.compute_loss(predictions, targets)
             
             optimizer.zero_grad()
@@ -416,7 +418,40 @@ def train_model(config, logger, fold_idx=None):
                 best_path = os.path.join(config.save_dir, f"best_model_{config.dataset_name}{fold_suffix}.pth")
                 save_checkpoint(model, optimizer, epoch+1, valid_loss, best_path, config.dataset_name, is_best=True)
                 
-                # Extract and save IRT parameters (theta, alpha, beta) for best model
+                # FAST IRT EXTRACTION: Get all essential IRT parameters instantly
+                fast_irt = model.extract_trained_parameters()
+                logger.info(f"Fast IRT extraction: α={np.mean(fast_irt['alpha_estimates']):.3f}±{np.std(fast_irt['alpha_estimates']):.3f}, "
+                           f"β={np.mean(fast_irt['beta_estimates']):.3f}±{np.std(fast_irt['beta_estimates']):.3f}, "
+                           f"θ={np.mean(fast_irt['theta_estimates']):.3f}±{np.std(fast_irt['theta_estimates']):.3f}")
+                
+                # Full IRT statistics using validation data (more accurate)
+                if len(valid_loader) > 0:
+                    sample_batch = next(iter(valid_loader))
+                    q_data = sample_batch['q_data'].to(device)
+                    qa_data = sample_batch['qa_data'].to(device)
+                    full_irt_stats = model.compute_irt_statistics(q_data, qa_data)
+                    logger.info(f"Full IRT statistics: θ={np.mean(full_irt_stats['student_abilities']):.3f}±{np.std(full_irt_stats['student_abilities']):.3f} "
+                               f"(sample: {full_irt_stats['predictions'].shape})")
+                
+                # Save both fast and full IRT stats
+                import pickle
+                irt_dir = "irt_stats"
+                os.makedirs(irt_dir, exist_ok=True)
+                
+                # Save fast extraction results (data-based with proper theta estimation)
+                fast_irt_path = os.path.join(irt_dir, f"fast_irt_{config.dataset_name}{fold_suffix}.pkl")
+                with open(fast_irt_path, 'wb') as f:
+                    pickle.dump(fast_irt, f)
+                logger.info(f"Saved fast IRT parameters to {fast_irt_path}")
+                
+                # Save full IRT stats if available  
+                if 'full_irt_stats' in locals():
+                    full_irt_path = os.path.join(irt_dir, f"full_irt_{config.dataset_name}{fold_suffix}.pkl")
+                    with open(full_irt_path, 'wb') as f:
+                        pickle.dump(full_irt_stats, f)
+                    logger.info(f"Saved full IRT statistics to {full_irt_path}")
+                
+                # Keep original method for backward compatibility
                 save_irt_stats(model, valid_loader, device, config.dataset_name, fold_suffix)
                 
                 logger.info(f"New best model: train_loss={train_loss:.4f}, best_auc={best_auc:.4f}")
@@ -484,6 +519,9 @@ def main():
                         help='Disable discrimination parameter (use 1PL model)')
     parser.add_argument('--single_fold', action='store_true',
                         help='Train only the specified fold instead of all 5 folds')
+    parser.add_argument('--model_type', type=str, default='optimized', 
+                        choices=['original', 'optimized'],
+                        help='Model type: original or optimized (default: optimized)')
     
     args = parser.parse_args()
     
@@ -517,7 +555,7 @@ def main():
         logger.info(f"Batch size: {config.batch_size}")
         logger.info(f"Learning rate: {config.learning_rate}")
         
-        best_auc, test_auc, metrics = train_model(config, logger, fold_idx=args.fold)
+        best_auc, test_auc, metrics = train_model(config, logger, fold_idx=args.fold, model_type=args.model_type)
         
         print(f"\n=== Training Summary (Fold {args.fold}) ===")
         print(f"Dataset: {args.dataset}")
@@ -537,7 +575,7 @@ def main():
             logger.info(f"\n=== Starting Fold {fold} ===")
             config.fold_idx = fold
             
-            best_auc, test_auc, metrics = train_model(config, logger, fold_idx=fold)
+            best_auc, test_auc, metrics = train_model(config, logger, fold_idx=fold, model_type=args.model_type)
             all_results.append({
                 'fold': fold,
                 'best_valid_auc': best_auc,
