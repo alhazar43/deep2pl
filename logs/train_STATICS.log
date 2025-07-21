@@ -18,3 +18,66 @@
 2025-07-21 16:30:10,311 - INFO - Loading STATICS dataset...
 2025-07-21 16:30:10,568 - INFO - Data: 179/50/104 | Model: 700,697 params | Per-KC: True (98 KCs)
 2025-07-21 16:30:11,105 - INFO - Starting training...
+2025-07-21 21:27:21,447 - INFO - === Training Deep-IRT (5-Fold Cross Validation) ===
+2025-07-21 21:27:21,448 - INFO - Dataset: STATICS
+2025-07-21 21:27:21,448 - INFO - Epochs: 2
+2025-07-21 21:27:21,448 - INFO - Batch size: 16
+2025-07-21 21:27:21,448 - INFO - Learning rate: 0.001
+2025-07-21 21:27:21,448 - INFO - 
+=== Starting Fold 0 ===
+2025-07-21 21:27:21,572 - INFO - Using device: cuda
+2025-07-21 21:27:21,572 - INFO - Loading STATICS dataset...
+2025-07-21 21:27:21,792 - INFO - Data: 179/50/104 | Model: 700,697 params | Per-KC: True (98 KCs)
+2025-07-21 21:27:22,376 - INFO - Starting training...
+2025-07-21 21:28:45,273 - INFO - Final evaluation on test set...
+2025-07-21 21:28:52,871 - INFO - Test: Loss=0.2294, AUC=0.9518, Acc=0.8921
+2025-07-21 21:28:52,894 - INFO - Training completed!
+2025-07-21 21:28:52,894 - INFO - Best validation AUC: 0.0000
+2025-07-21 21:28:52,894 - INFO - Final test AUC: 0.9518
+2025-07-21 21:28:52,924 - INFO - 
+=== Starting Fold 1 ===
+2025-07-21 21:28:52,944 - INFO - Using device: cuda
+2025-07-21 21:28:52,949 - INFO - Loading STATICS dataset...
+2025-07-21 21:28:52,989 - INFO - Data: 193/36/104 | Model: 700,697 params | Per-KC: True (98 KCs)
+2025-07-21 21:28:52,989 - INFO - Starting training...
+2025-07-21 21:30:31,822 - INFO - Final evaluation on test set...
+2025-07-21 21:30:42,002 - INFO - Test: Loss=0.2279, AUC=0.9534, Acc=0.8940
+2025-07-21 21:30:42,022 - INFO - Training completed!
+2025-07-21 21:30:42,022 - INFO - Best validation AUC: 0.0000
+2025-07-21 21:30:42,022 - INFO - Final test AUC: 0.9534
+2025-07-21 21:30:42,054 - INFO - 
+=== Starting Fold 2 ===
+2025-07-21 21:30:42,076 - INFO - Using device: cuda
+2025-07-21 21:30:42,076 - INFO - Loading STATICS dataset...
+2025-07-21 21:30:42,119 - INFO - Data: 184/45/104 | Model: 700,697 params | Per-KC: True (98 KCs)
+2025-07-21 21:30:42,119 - INFO - Starting training...
+2025-07-21 21:32:11,562 - INFO - Final evaluation on test set...
+2025-07-21 21:32:20,841 - INFO - Test: Loss=0.2294, AUC=0.9519, Acc=0.8924
+2025-07-21 21:32:20,867 - INFO - Training completed!
+2025-07-21 21:32:20,867 - INFO - Best validation AUC: 0.0000
+2025-07-21 21:32:20,867 - INFO - Final test AUC: 0.9519
+2025-07-21 21:32:20,901 - INFO - 
+=== Starting Fold 3 ===
+2025-07-21 21:32:20,922 - INFO - Using device: cuda
+2025-07-21 21:32:20,922 - INFO - Loading STATICS dataset...
+2025-07-21 21:32:20,967 - INFO - Data: 176/53/104 | Model: 700,697 params | Per-KC: True (98 KCs)
+2025-07-21 21:32:20,967 - INFO - Starting training...
+2025-07-21 21:33:38,548 - INFO - Final evaluation on test set...
+2025-07-21 21:33:45,651 - INFO - Test: Loss=0.2332, AUC=0.9494, Acc=0.8904
+2025-07-21 21:33:45,670 - INFO - Training completed!
+2025-07-21 21:33:45,670 - INFO - Best validation AUC: 0.0000
+2025-07-21 21:33:45,670 - INFO - Final test AUC: 0.9494
+2025-07-21 21:33:45,702 - INFO - 
+=== Starting Fold 4 ===
+2025-07-21 21:33:45,724 - INFO - Using device: cuda
+2025-07-21 21:33:45,724 - INFO - Loading STATICS dataset...
+2025-07-21 21:33:45,769 - INFO - Data: 184/45/104 | Model: 700,697 params | Per-KC: True (98 KCs)
+2025-07-21 21:33:45,769 - INFO - Starting training...
+2025-07-21 21:35:14,780 - INFO - Final evaluation on test set...
+2025-07-21 21:35:24,053 - INFO - Test: Loss=0.2281, AUC=0.9526, Acc=0.8927
+2025-07-21 21:35:24,076 - INFO - Training completed!
+2025-07-21 21:35:24,076 - INFO - Best validation AUC: 0.0000
+2025-07-21 21:35:24,076 - INFO - Final test AUC: 0.9526
+2025-07-21 21:35:24,145 - INFO - 5-fold cross validation completed!
+2025-07-21 21:35:24,145 - INFO - Mean validation AUC: 0.0000 ± 0.0000
+2025-07-21 21:35:24,145 - INFO - Mean test AUC: 0.9518 ± 0.0013

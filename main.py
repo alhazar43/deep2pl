@@ -27,6 +27,19 @@ from tqdm import tqdm
 import time
 import logging
 
+# Get correct Python executable for conda environment
+def get_python_executable():
+    """Get the Python executable, preferring conda environment if available."""
+    # Check if we're in a conda environment and vrec-env exists
+    conda_python = os.path.expanduser("~/anaconda3/envs/vrec-env/bin/python")
+    if os.path.exists(conda_python):
+        return conda_python
+    
+    # Fallback to current Python
+    return sys.executable
+
+PYTHON_EXE = get_python_executable()
+
 
 def load_irt_stats(dataset_name, fold_idx=None, stats_type='fast'):
     """
@@ -140,13 +153,19 @@ def run_command_with_progress(cmd, desc="Running command", dataset=None, expecte
     
     print(f"\n🚀 {desc}")
     
+    # Set environment to fix MKL threading issue
+    import os
+    env = os.environ.copy()
+    env['MKL_SERVICE_FORCE_INTEL'] = '1'
+    
     # Start subprocess
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         universal_newlines=True,
-        bufsize=1
+        bufsize=1,
+        env=env
     )
     
     # Setup progress tracking
@@ -253,9 +272,18 @@ def get_available_datasets(data_dir="./data"):
             
             # Look for training data files (multiple possible formats)
             train_files = [
+                # Single file formats
                 dataset_dir / f"{dataset_name}_train.txt",
+                dataset_dir / f"{dataset_name}_train.csv", 
                 dataset_dir / f"{dataset_name}.train",
-                dataset_dir / "train.txt"
+                dataset_dir / "train.txt",
+                # Pre-split formats
+                dataset_dir / f"{dataset_name}_train0.csv",
+                dataset_dir / f"{dataset_name}_train1.csv",
+                # Special cases
+                dataset_dir / "builder_train.csv",  # assist2009
+                dataset_dir / f"{dataset_name.replace('2011', '')}_train.txt",  # statics2011 -> static_train.txt
+                dataset_dir / f"{dataset_name.replace('statics', 'static')}_train.txt"  # statics2011 -> static2011_train.txt
             ]
             
             # Check if any training file exists
@@ -483,7 +511,7 @@ def train_all_models(datasets=None, single_fold=False, fold_idx=0, epochs=None, 
         
         # Build training command with parameter overrides
         cmd = [
-            sys.executable, "train.py",
+            PYTHON_EXE, "train.py",
             "--dataset", dataset,
             "--epochs", str(epochs if epochs is not None else config['epochs']),
             "--batch_size", str(batch_size if batch_size is not None else config['batch_size']),
@@ -591,7 +619,7 @@ def evaluate_all_models(datasets=None, splits=['test']):
         
         for split in splits:
             cmd = [
-                sys.executable, "evaluate.py",
+                PYTHON_EXE, "evaluate.py",
                 "--model_path", str(model_file),
                 "--split", split
             ]
@@ -628,9 +656,18 @@ def extract_model_statistics(datasets=None):
     Returns:
         dict: Extracted statistics
     """
-    import torch
-    from models.model_selector import create_model
-    from data.dataloader import create_datasets, create_dataloader
+    try:
+        import torch
+        from models.model_selector import create_model
+        from data.dataloader import create_datasets, create_dataloader
+    except ImportError as e:
+        print(f"Warning: Could not import PyTorch modules for statistics extraction: {e}")
+        print("Skipping statistics extraction phase...")
+        return {}
+        
+    if not torch.cuda.is_available():
+        print("Warning: CUDA not available for statistics extraction, skipping...")
+        return {}
     
     save_models_dir = Path("save_models")
     stats_dir = Path("stats")
@@ -809,7 +846,7 @@ def generate_all_visualizations(datasets=None):
     
     # Generate training metrics plots
     print("\nGenerating training metrics visualizations...")
-    cmd = [sys.executable, "plot_metrics.py", "--all", "--results_dir", "results/train", "--output_dir", "results/plots"]
+    cmd = [PYTHON_EXE, "plot_metrics.py", "--all", "--results_dir", "results/train", "--output_dir", "results/plots"]
     run_command(cmd, "Generating training metrics plots", show_progress=False)
     
     # Generate evaluation visualizations for ROC curves
@@ -828,7 +865,7 @@ def generate_all_visualizations(datasets=None):
                 dataset_files = [str(f) for f in eval_files if dataset in f.name]
                 if dataset_files:
                     cmd = [
-                        sys.executable, "plot_metrics.py",
+                        PYTHON_EXE, "plot_metrics.py",
                         "--eval_results_dir", str(eval_results_dir),
                         "--dataset", dataset,
                         "--output_dir", "results/plots"

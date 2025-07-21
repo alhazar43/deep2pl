@@ -112,3 +112,14 @@
 2025-07-21 20:46:12,375 - INFO - Loading assist2009_updated dataset...
 2025-07-21 20:46:12,713 - INFO - Data: 2331/590/1230 | Model: 155,503 params | Per-KC: False
 2025-07-21 20:46:13,315 - INFO - Starting training...
+2025-07-21 21:37:00,216 - INFO - === Training Deep-IRT (5-Fold Cross Validation) ===
+2025-07-21 21:37:00,218 - INFO - Dataset: assist2009_updated
+2025-07-21 21:37:00,218 - INFO - Epochs: 2
+2025-07-21 21:37:00,218 - INFO - Batch size: 32
+2025-07-21 21:37:00,218 - INFO - Learning rate: 0.001
+2025-07-21 21:37:00,218 - INFO - 
+=== Starting Fold 0 ===
+2025-07-21 21:37:00,371 - INFO - Using device: cuda
+2025-07-21 21:37:00,372 - INFO - Loading assist2009_updated dataset...
+2025-07-21 21:37:00,686 - INFO - Data: 2331/590/1230 | Model: 155,503 params | Per-KC: False
+2025-07-21 21:37:01,292 - INFO - Starting training...
